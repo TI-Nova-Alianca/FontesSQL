@@ -8,11 +8,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
-
-
-ALTER VIEW [dbo].[VA_VNOTAS_SAFRA]
+alter VIEW [dbo].[VA_VNOTAS_SAFRA]
 AS
 
 -- Cooperativa Vinicola Nova Alianca Ltda
@@ -56,6 +52,8 @@ AS
 -- 01/02/2021 - Robert  - Incluida amarracao entre D1_ITEM e ZF_ITEM por que houve casos (em 2021) de duas linhas na carga com mesmo produto.
 -- 25/02/2021 - Robert  - Incluida loga 02 do fornecedor 001369 como producao propria (cadastro criado na safra 2021).
 -- 02/07/2021 - Claudia - Incluido campos de funrural. GLPI: 10177
+-- 29/07/2021 - Robert  - Nao considerava o campo A2_LOJA ao relacionar SD1 com SA2 (GLPI 11005)
+--
 
 SELECT SAFRA,
        CASE 
@@ -262,12 +260,11 @@ FROM   SA2010 SA2,
                     AND D1_LOJA = '01'
                     AND D1_DTDIGIT BETWEEN '20070101' AND '20071231'
        ) AS ITENS
-WHERE  SA2.D_E_L_E_T_ = ''
-       AND SB1.D_E_L_E_T_ = ''
-       AND SB1.B1_FILIAL = '  '
-       AND SA2.A2_FILIAL = '  '
-       AND SB1.B1_COD = ITENS.D1_COD
-       AND SA2.A2_COD = ITENS.D1_FORNECE
+WHERE SA2.D_E_L_E_T_ = ''
+  AND SB1.D_E_L_E_T_ = ''
+  AND SB1.B1_FILIAL  = '  '
+  AND SA2.A2_FILIAL  = '  '
+  AND SB1.B1_COD     = ITENS.D1_COD
+  AND SA2.A2_COD     = ITENS.D1_FORNECE
+  AND SA2.A2_LOJA    = ITENS.D1_LOJA
 GO
-
-
