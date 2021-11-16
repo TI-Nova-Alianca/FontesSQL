@@ -3,8 +3,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
 -- =============================================
 -- Author     : Robert Koch
 -- Create date: 27/10/2017
@@ -13,8 +11,10 @@ GO
 -- =============================================
 -- Historico de alteracoes:
 -- 29/09/2020 - Claudia - Alterada a linha de B1_CLINF para B1_CODLIN. GLPI: 8552
+-- 16/11/2021 - Robert  - Removidas referencias fixas a 'protheus.dbo' por que dava problemas qualdo levada para a base teste.
+--
 
-CREATE FUNCTION [dbo].[VA_FRAPELPADRAO]
+ALTER FUNCTION [dbo].[VA_FRAPELPADRAO]
 (
 	@CLIENTE AS VARCHAR (6),
 	@LOJA    AS VARCHAR (2),
@@ -29,7 +29,7 @@ BEGIN
 
 	-- VERIFICA SE O CLIENTE TEM RAPEL
 	IF (SELECT A1_VABARAP
-	      FROM protheus.dbo.SA1010 SA1
+	      FROM SA1010 SA1
 		 WHERE SA1.D_E_L_E_T_ = ''
 		   AND SA1.A1_FILIAL  = '  '
 		   AND SA1.A1_COD     = @CLIENTE
@@ -39,7 +39,7 @@ BEGIN
 		BEGIN
 		-- TENTA POR CLIENTE + PRODUTO.
 		SET @RET = (SELECT ZAX_PRAPEL
-					  FROM protheus.dbo.ZAX010 ZAX, protheus.dbo.SA1010 SA1, protheus.dbo.SB1010 SB1
+					  FROM ZAX010 ZAX, SA1010 SA1, SB1010 SB1
 					 WHERE ZAX.D_E_L_E_T_ = ''
 					   AND ZAX.ZAX_FILIAL = '  '
 					   AND ZAX.ZAX_CLIENT = @CLIENTE
@@ -59,7 +59,7 @@ BEGIN
 		BEGIN
 			DECLARE @LINHA AS VARCHAR (4);
 			SET @LINHA = (SELECT B1_CODLIN --B1_CLINF
-							FROM protheus.dbo.SB1010
+							FROM SB1010
 						   WHERE D_E_L_E_T_ = ''
 							 AND B1_FILIAL = '  '
 							 AND B1_COD = @PRODUTO);
@@ -67,7 +67,7 @@ BEGIN
 			BEGIN
 				-- TENTA POR CLIENTE + LINHA 
 				SET @RET = (SELECT ZAX_PRAPEL
-							  FROM protheus.dbo.ZAX010 ZAX, protheus.dbo.ZAZ010 ZAZ
+							  FROM ZAX010 ZAX, ZAZ010 ZAZ
 							 WHERE ZAX.D_E_L_E_T_ = ''
 							   AND ZAX.ZAX_FILIAL = '  '
 							   AND ZAX.ZAX_CLIENT = @CLIENTE
@@ -85,7 +85,7 @@ BEGIN
 		BEGIN
 			-- TENTA POR CLIENTE
 			SET @RET = (SELECT ZAX_PRAPEL
-						  FROM protheus.dbo.ZAX010 ZAX, protheus.dbo.SA1010 SA1
+						  FROM ZAX010 ZAX, SA1010 SA1
 						 WHERE ZAX.D_E_L_E_T_ = ''
 						   AND ZAX.ZAX_FILIAL = '  '
 						   AND ZAX.ZAX_CLIENT = @CLIENTE
