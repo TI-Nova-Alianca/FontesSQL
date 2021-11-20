@@ -25,6 +25,7 @@ GO
 -- 19/07/2021 - Robert - Teste de mes jah fechado: comparava sempre datas ateh dia 31 (no caso do mes de junho, temos apenas 30 dias).  (GLPI 10497)
 --                     - Teste de mes jah fechado: considerava como CPV somente a conta 402010101001. Passa a ser considerada de 402010101001 a 402010101004 (GLPI 10497)
 -- 30/08/2021 - Robert - Nao gera mais EBITDA, ajustes inversoes de sinal chumbados, nao faz mais leitura de financiamentos bancarios (GLPI 10849)
+-- 19/11/2021 - Robert - Filtra CQ3_LP!='Z' para ignorar contas de zeramento (anos fechados ficavam com o realizado zerado).
 --
 
 ALTER FUNCTION VA_FCONS_ORCAMENTO_525
@@ -155,6 +156,7 @@ BEGIN
 			AND CQ3_DATA BETWEEN @ANO_ANT + '0101' AND @ANO + '1231'
 			AND CQ3_FILIAL BETWEEN @FILINI AND @FILFIM
 			AND (CQ3_CONTA like '4%' or CQ3_CONTA like '7%') AND (CQ3_CONTA < '701011001005' OR CQ3_CONTA > '7010110011039')  -- CONTAS TIPO 'CC' DEVEM SER DESCONSIDERADAS.
+			AND CQ3_LP != 'Z' -- IGNORAR AS CONTAS DE ZERAMENTO (VIRADA DE EXERCICIO)
 			GROUP BY CQ3_FILIAL, CQ3_CONTA, '01' + SUBSTRING (CQ3_CCUSTO, 3, 7)
 	)
 
