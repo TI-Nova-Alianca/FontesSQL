@@ -8,10 +8,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
-
-
 ALTER view [dbo].[VA_VMONITOR_ETIQ_FULL]
 AS
 
@@ -25,6 +21,8 @@ AS
 -- 07/08/2018 - Robert - Criada coluna VALID_ENVIADA_PARA_FULL (serve tanto para ter a data como para saber se consta na tabela tb_wms_etiquetas)
 -- 24/10/2018 - Robert - Pesquisa tb_wms_entrada com chave 'ZA1%' alem do 'SD3%' para contemplar entradas por NF e por transf.manual
 --                     - Acrescentadas colunas ZA1_IDTRANSF e ULTIMO_EVENTO.
+-- 13/12/2021 - Robert - Acrescentada descricao de alguns status_protheus.
+--
 
 SELECT
 	ZA1.ZA1_FILIAL AS FILIAL
@@ -62,11 +60,13 @@ SELECT
 	END AS DESCRI_STATUS_FULL
 	,ISNULL (t.status_protheus, '') AS STATUS_TRANSF
 	,CASE ISNULL (t.status_protheus, '')
-		WHEN '1' THEN 'Falta estq.p/transf'
-		WHEN '2' THEN 'Erro ao transferir'
+		WHEN '1' THEN 'Falta estq. no ERP p/transferir'
+		WHEN '2' THEN 'Erro nao tratado ao transferir'
 		WHEN '3' THEN 'Transferido OK'
-		WHEN '9' THEN 'Cancelado autom.'
-		WHEN 'C' THEN 'Cancelado manual'
+		WHEN '4' THEN 'Diferenca quant. ERP x Full'
+		WHEN '5' THEN 'Qt.movimentada menor que executada'
+		WHEN '9' THEN 'Cancelado no ERP'
+		WHEN 'C' THEN 'Cancelamento manual no ERP'
 		ELSE ''
 	END AS DESCRI_STATUS_TRANSF
 	,CASE t.status
@@ -95,8 +95,6 @@ FROM	SB1010 SB1
 			AND APONT.D3_CF LIKE 'PR%'
 			AND APONT.D3_ESTORNO != 'S'
 			)
---		LEFT JOIN tb_wms_entrada t
---			ON (t.entrada_id = 'SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ)
 		LEFT JOIN tb_wms_entrada t
 			ON ((t.entrada_id = 'SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ)
 			    or
