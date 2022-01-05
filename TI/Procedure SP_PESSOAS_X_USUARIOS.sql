@@ -9,7 +9,9 @@ GO
 -- Data:  31/03/2021
 -- Historico de alteracoes:
 -- 04/05/2021 - Daiana - Passa a gerar saida em HTML para melhor visualizacao no NaWeb
+-- 05/01/2022 - Robert - Passa a buscar tambem os grupos da tabela ZZU.
 --
+
 -- Exemplo de uso:
 -- declare @resultado varchar (max);
 -- exec SP_PESSOAS_X_USUARIOS 'julian', '', @RET = @resultado output
@@ -140,6 +142,7 @@ BEGIN
 			FROM #PESSOAS
 			ORDER BY REGISTRO
 
+
 			-- Abre um paragrafo no HTML de retorno para mostrar dados do RH
 			SET @RET += '<p><strong>Registros no RH</strong></p>'
 			SET @RET += '<pre style="padding-left: 40px;">'
@@ -160,6 +163,8 @@ BEGIN
 			SET @RET += '</pre>'
 
 			
+
+			-- Abre um paragrafo no HTML de retorno para mostrar dados do A.D.
 			SET @RET += '<p><br><strong>ACTIVE DIRECTORY</strong></p>'--DAY 04/05/21 - RETORNANDO UMA VARIAVEL COM O CONTEUDO DO TEXTO
 			SET @RET += '<pre style="padding-left: 40px;">'
 			IF (@AD_ACCOUNTNAME = '')
@@ -172,6 +177,7 @@ BEGIN
 				SET @RET += 'Situacao: ' + CASE WHEN @AD_ENABLED != 'S' THEN 'Bloqueado' ELSE 'Ativo' END + '</br>'
 			END
 			SET @RET += '</pre>'
+
 
 
 			-- Abre um paragrafo no HTML de retorno para mostrar dados do Protheus
@@ -188,10 +194,10 @@ BEGIN
 				SET @RET += 'Nome....: ' + ISNULL (@PROTHEUS_NOME, '') + '</br>'
 			--	SET @RET += 'Grupos x privilegios:</br>'
 
-				-- CRIA TABELA TEMPORARIA DE GRUPOS DESTE USUARIO NO PROTHEUS.
+				-- CRIA TABELA TEMPORARIA DE GRUPOS (DO CONFIGURADOR) DESTE USUARIO NO PROTHEUS.
 				SELECT ROW_NUMBER() OVER (ORDER BY GU.USR_PRIORIZA, GU.R_E_C_N_O_) AS REGISTRO  -- SEGUNDO DOCUMENTACAO, O PRIMEIRO GRUPO 'MANDA MAIS' QUANDO NAO TEM PRIORIZACAO: https://tdn.totvs.com/display/public/PROT/Configurar+dias+de+troca+da+Data+Base+do+Sistema
 					, GU.USR_ID, GP.GR__ID, GP.GR__NOME, GU.USR_PRIORIZA
-				INTO #PROTHEUS_GRUPOS_DO_USUARIO
+				INTO #PROTHEUS_GRUPOS_DO_USUARIO_CFG
 				FROM LKSRV_PROTHEUS.protheus.dbo.SYS_GRP_GROUP GP,
 					LKSRV_PROTHEUS.protheus.dbo.SYS_USR_GROUPS GU
 				WHERE GP.D_E_L_E_T_ = ''
@@ -201,12 +207,12 @@ BEGIN
 				AND GP.GR__ID = GU.USR_GRUPO
 
 				-- PERCORRE A TABELA TEMPORARIA DE GRUPOS E ACRESCENTA TODOS `A STRING DE RETORNO.
-				WHILE EXISTS (SELECT TOP 1 NULL FROM #PROTHEUS_GRUPOS_DO_USUARIO)
+				WHILE EXISTS (SELECT TOP 1 NULL FROM #PROTHEUS_GRUPOS_DO_USUARIO_CFG)
 				BEGIN
 				
-					SET @RET += '    Grp.'
+					SET @RET += '    SigaCFG grupo '
 					SET @RET += (SELECT TOP 1 GR__ID + ' - ' + RTRIM (GR__NOME) + CASE WHEN USR_PRIORIZA = '1' THEN ' (priorizar)' ELSE '' END
-								FROM #PROTHEUS_GRUPOS_DO_USUARIO
+								FROM #PROTHEUS_GRUPOS_DO_USUARIO_CFG
 								ORDER BY REGISTRO)
 					SET @RET += '<br>'
 
@@ -220,7 +226,7 @@ BEGIN
 						ON (PRIVGRP.D_E_L_E_T_ = '' AND PRIVGRP.GR__RL_ID = PRIV.RL__ID)
 					WHERE PRIV.D_E_L_E_T_ = ''
 					AND PRIVGRP.GROUP_ID = (SELECT TOP 1 GR__ID
-											FROM #PROTHEUS_GRUPOS_DO_USUARIO
+											FROM #PROTHEUS_GRUPOS_DO_USUARIO_CFG
 											ORDER BY REGISTRO)
 					ORDER BY PRIVGRP.GR__RL_ID
 
@@ -247,25 +253,53 @@ BEGIN
 						ON (PRIVGRP.D_E_L_E_T_ = '' AND PRIVGRP.GR__RL_ID = PRIV.RL__ID)
 					WHERE PRIV.D_E_L_E_T_ = ''
 					AND PRIVGRP.GROUP_ID = (SELECT TOP 1 GR__ID
-											FROM #PROTHEUS_GRUPOS_DO_USUARIO
+											FROM #PROTHEUS_GRUPOS_DO_USUARIO_CFG
 											ORDER BY REGISTRO)
 					--ORDER BY PRIVGRP.GR__RL_ID
 					)
 
+					-- REMOVE O REGISTRO DA TABELA DE GRUPOS
+					DELETE #PROTHEUS_GRUPOS_DO_USUARIO_CFG WHERE REGISTRO = (SELECT MIN (REGISTRO) FROM #PROTHEUS_GRUPOS_DO_USUARIO_CFG)
+				END
+				DROP TABLE #PROTHEUS_GRUPOS_DO_USUARIO_CFG
 
 
+				-- CRIA TABELA TEMPORARIA DE GRUPOS (DA TABELA ZZU) DESTE USUARIO NO PROTHEUS.
+				SELECT ROW_NUMBER() OVER (ORDER BY ZZU.ZZU_GRUPO) AS REGISTRO
+						,ZZU_GRUPO, ZZU_DESCRI, ZZU_FIL, ZZU_TIPO
+				INTO #PROTHEUS_GRUPOS_DO_USUARIO_ZZU
+				FROM LKSRV_PROTHEUS.protheus.dbo.ZZU010 ZZU
+				WHERE ZZU.D_E_L_E_T_ = ''
+				AND ZZU.ZZU_VALID >= FORMAT (getdate (), 'yyyyMMdd')
+				AND ZZU.ZZU_USER = @PROTHEUS_ID
 
-
-
+				-- PERCORRE A TABELA TEMPORARIA DE GRUPOS E ACRESCENTA TODOS `A STRING DE RETORNO.
+				WHILE EXISTS (SELECT TOP 1 NULL FROM #PROTHEUS_GRUPOS_DO_USUARIO_ZZU)
+				BEGIN
+				
+					SET @RET += '    Tab.ZZU grupo '
+					SET @RET += (SELECT TOP 1 ZZU_GRUPO + ' - [filial ' + ZZU_FIL
+									+ CASE ZZU_TIPO
+									WHEN '1' THEN ' Libera   '
+									WHEN '2' THEN ' Notifica '
+									WHEN '3' THEN ' Lib+notif'
+									END
+									+ '] '+ RTRIM (ZZU_DESCRI)
+								FROM #PROTHEUS_GRUPOS_DO_USUARIO_ZZU
+								ORDER BY ZZU_GRUPO)
+					SET @RET += '<br>'
 
 					-- REMOVE O REGISTRO DA TABELA DE GRUPOS
-					DELETE #PROTHEUS_GRUPOS_DO_USUARIO WHERE REGISTRO = (SELECT MIN (REGISTRO) FROM #PROTHEUS_GRUPOS_DO_USUARIO)
+					DELETE #PROTHEUS_GRUPOS_DO_USUARIO_ZZU WHERE REGISTRO = (SELECT MIN (REGISTRO) FROM #PROTHEUS_GRUPOS_DO_USUARIO_ZZU)
 				END
-				DROP TABLE #PROTHEUS_GRUPOS_DO_USUARIO
+				DROP TABLE #PROTHEUS_GRUPOS_DO_USUARIO_ZZU
+
 			END
 			SET @RET += '</pre>'
 
 
+
+			-- Abre um paragrafo no HTML de retorno para mostrar dados do NaWeb
 			SET @RET += '<p><br><strong>NaWeb:</strong></p>'
 			SET @RET += '<pre style="padding-left: 40px;">'
 			IF (@NAWEB_USER = '')
