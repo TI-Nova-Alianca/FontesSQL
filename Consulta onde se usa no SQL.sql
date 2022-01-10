@@ -1,6 +1,6 @@
 
 -- Pesquisa por determinado nome de objeto no banco de dados
-declare @nome varchar (max) = 'SYS_USR'
+declare @nome varchar (max) = 'OPENQUERY'
 
 -- Define em qual banco de dados deve ser feita a pesquisa
 use protheus
