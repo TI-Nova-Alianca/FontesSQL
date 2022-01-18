@@ -21,6 +21,7 @@ GO
 -- 01/12/2020 - Robert - Separadas colunas GX0001_VITICOLA_CODIGO e GX0001_SIVIBE_CODIGO
 --                     - Nao trazia fornecedores nao associados (assumia codigo e loja em branco)
 -- 05/01/2020 - Robert - Criada coluna GX0001_TIPO_FORNECEDOR_UVA
+-- 18/01/2021 - Robert - Bloqueado associado 005500/02 (GLPI 11491)
 --
 
 ALTER view [dbo].[GX0001_AGENDA_SAFRA]
@@ -104,6 +105,7 @@ WITH FORNECEDORES AS
 	 AND SA2.A2_FILIAL = '  '
 	 AND SA2.A2_COD = SZI_BASE.ZI_ASSOC
 	 AND SA2.A2_LOJA = SZI_BASE.ZI_LOJASSO
+     AND NOT (SA2.A2_COD = '005500' AND SA2.A2_LOJA = '02') -- Associado que estamos mudando para novo codigo (GLPI 11491)
 	 AND NOT EXISTS (SELECT
 			 *
 		 FROM SZI010 SZI_ANTERIOR
