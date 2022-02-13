@@ -13,6 +13,7 @@ GO
 -- 26/01/2016 - Robert - A partir da query inicial, popula variaveis de memoria, deixando de trabalhar com CTEs.
 --                     - Quando extrapolava o horario de inicio, ficava sempre para amanha...e amanha jogava novamente 'para amanha'...
 -- 18/12/2019 - Robert - Criado tratamento para filial 16.
+-- 13/02/2022 - Robert - Desconsiderava o batch quando atingido maximo de tentativas (na vdd teve erros, mas continua pendente e precisa ser verificado) - GLPI 11619
 --
 
 ALTER FUNCTION [dbo].[VA_FPROX_EXEC_BATCH]
@@ -69,8 +70,9 @@ BEGIN
 		WHERE ZZ6.R_E_C_N_O_ = @RECNO
 		AND ZZ6_ATIVO = 'S'
 		AND ZZ6_DIASEM != ''
-		AND (ZZ6_PERIOD = 'R' OR (ZZ6_PERIOD = 'U' AND ZZ6_RODADO NOT IN ('S', 'C', 'E', 'K') AND ZZ6_QTTENT < ZZ6_MAXTEN))
-		AND ZZ6_AGWF   != 'S'
+--		AND (ZZ6_PERIOD = 'R' OR (ZZ6_PERIOD = 'U' AND ZZ6_RODADO NOT IN ('S', 'C', 'E', 'K') AND ZZ6_QTTENT < ZZ6_MAXTEN))
+		AND (ZZ6_PERIOD = 'R' OR (ZZ6_PERIOD = 'U' AND ZZ6_RODADO NOT IN ('S', 'C', 'E', 'K')))
+		AND ZZ6_AGWF   != 'S'  -- SE ESTIVER AGUARDANDO LIBERACAO MANUAL (UMA ESPECIE DE WORKFLOW)
 	)
 
 	SELECT @INICIO  = INICIO,
