@@ -10,6 +10,7 @@ GO
 --
 -- Historico de alteracoes:
 -- 17/05/2018 - Robert - Acrescentada coluna de SEQUENCIA para diferenciar casos de ter mesmo NUMSEQ (requisicao de varios lotes numa mesma OP, por exemplo)
+-- 14/02/2022 - Robert - Ajustada descricao do mov.de transformacao (palavra DE/EM cfe. fosse entrada ou saida).
 --
 
 ALTER FUNCTION [dbo].[VA_FKARDEX_LOTE]
@@ -176,7 +177,8 @@ AS
 	                          WHEN SUBSTRING(SD3.D3_CF, 3, 1) = '7' THEN 
 	                               'DESMONTAGEM'
 	                          WHEN SUBSTRING(SD3.D3_CF, 3, 1) = '4'
-	              AND CONTRAPARTIDA.D3_COD != SD3.D3_COD THEN 'TRANSFORMADO EM ' 
+	              AND CONTRAPARTIDA.D3_COD != SD3.D3_COD THEN 'TRANSFORMADO '
+	                  + CASE WHEN SD3.D3_CF LIKE 'RE%' THEN ' EM ' ELSE ' DE ' END
 	                  + RTRIM(CONTRAPARTIDA.D3_COD) + ' NO ALM.' + CONTRAPARTIDA.D3_LOCAL
 	                  --WHEN SUBSTRING(SD3.D3_CF, 3, 1) = '4' AND CONTRAPARTIDA.D3_COD = SD3.D3_COD THEN 'TRANSF.ALM.' + CONTRAPARTIDA.D3_LOCAL
 	                  WHEN SUBSTRING(SD3.D3_CF, 3, 1) = '4'
