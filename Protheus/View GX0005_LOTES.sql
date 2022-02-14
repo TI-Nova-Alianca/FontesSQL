@@ -2,6 +2,15 @@ SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
+-- Cooperativa Vinicola Nova Alianca Ltda
+-- View para buscar os Produtos do Protheus.
+-- Autor: ?
+-- Data:  ?
+-- Historico de alteracoes:
+-- 14/02/2022 - Robert - Acrescentada clausula B1_FILIAL = '  '
+--
+
 ALTER view [dbo].[GX0005_LOTES]
 AS
 SELECT
@@ -14,5 +23,6 @@ WHERE
 	B8_PRODUTO = B1_COD AND 
 	B8_DATA >= '20170101' AND
 	SB8010.D_E_L_E_T_ = '' AND 
-	SB1010.D_E_L_E_T_ = ''
+	SB1010.D_E_L_E_T_ = '' AND
+    SB1010.B1_FILIAL = '  '
 GO
