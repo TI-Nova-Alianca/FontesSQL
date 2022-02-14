@@ -3,15 +3,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
-
-
-
-
-
-
-
 ALTER view [dbo].[GX0004_PRODUTOS]
 AS
 
@@ -20,7 +11,8 @@ AS
 -- Autor: Júlio Pedroni
 -- Data:  23/05/2017
 -- Historico de alteracoes:
---
+-- 14/02/2022 - Robert - Acrescentados filtros por filial nas tabelas ZAZ, SH1 e SB1
+--                     - Desconsiderava itens com B1_DESC vazio (nao sei o motivo)
 
 select 
 	B1_COD	   AS GX0004_PRODUTO_CODIGO,
@@ -48,9 +40,10 @@ select
 from SB1010
 left join ZX5010		 on (SB1010.B1_CODLIN  = ZX5010.ZX5_39COD AND ZX5010.D_E_L_E_T_ = '' AND ZX5010.ZX5_TABELA = '39' AND ZX5010.ZX5_FILIAL = '')
 left join ZX5010 as ZX52 on (SB1010.B1_VAMARCM = ZX52.ZX5_40COD   AND ZX52.D_E_L_E_T_ = '' AND ZX52.ZX5_TABELA = '40' AND ZX52.ZX5_FILIAL = '')
-left join ZAZ010		 on (SB1010.B1_CLINF   = ZAZ010.ZAZ_CLINF AND ZAZ010.D_E_L_E_T_ = '')
-left join SH1010		 on (SB1010.B1_VALINEN = SH1010.H1_CODIGO AND SH1010.D_E_L_E_T_ = '')
-WHERE B1_DESC <> '' and SB1010.D_E_L_E_T_ = ''
-
+left join ZAZ010		 on (SB1010.B1_CLINF   = ZAZ010.ZAZ_CLINF AND ZAZ010.D_E_L_E_T_ = '' AND ZAZ_FILIAL = '  ')
+left join SH1010		 on (SB1010.B1_VALINEN = SH1010.H1_CODIGO AND SH1010.D_E_L_E_T_ = '' AND H1_FILIAL = '  ')
+WHERE --B1_DESC <> '' and 
+SB1010.D_E_L_E_T_ = ''
+AND B1_FILIAL = '  '
 
 GO
