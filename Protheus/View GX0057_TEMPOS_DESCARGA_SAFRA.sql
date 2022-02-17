@@ -12,35 +12,15 @@ GO
 -- Autor: Robert Koch
 -- Data:  04/02/2022
 -- Historico de alteracoes:
--- ??/02/2022 - Ajustes Daiana
+-- ??/02/2022 - Daiana - Ajustes gerais
+-- 17/02/2022 - Robert - Criada coluna GX0057_MIN_AGENDA_TOMBADOR (GLPI 11636)
 --
 
 ALTER view [dbo].[GX0057_TEMPOS_DESCARGA_SAFRA]
 AS
 
--- Cooperativa Agroindustrial Nova Alianca Ltda
--- View para buscar os horarios e demoras entre processos do recebimento de safra (GLPI 11579)
--- Autor: Robert Koch
--- Data:  04/02/2022
--- Historico de alteracoes:
---
-
-/*
--- GERA UMA 'CTE' COM O MENOR HORARIO DE AGENDAMENTO DE CADA CARGA, POIS FICOU MUITO DEMORADO USAR
--- COMO UMA SUBQUERY DURANTE A LEITURA DAS CARGAS.
-WITH AGENDA AS (
-select A.TrnAgeAgendaSafra, T.TrnAgeTombadorFil, I.InspCargaCod, min (TrnAgeAgendaDatHor) as TrnAgeAgendaDatHor
-				from LKSRV_NAWEB.naweb.dbo.TrnAgeAgenda A
-					,LKSRV_NAWEB.naweb.dbo.TrnAgeTombador T
-					,LKSRV_NAWEB.naweb.dbo.SFInspCarga I
-				WHERE T.TrnAgeTombadorCod = A.TrnAgeTombadorCod
-					AND I.InspCargaAgendaId = A.TrnAgeAgendaOri
-					and A.TrnAgeAgendaSit != 'DIS'
-				group by TrnAgeAgendaSafra, TrnAgeTombadorFil, InspCargaCod
-)
-
 -- GERA UMA 'CTE' COM DADOS DE CARGAS + CONTRANOTAS + AGENDA
-,*/ with CAR AS (
+with CAR AS (
 SELECT --SUBSTRING (DATA, 7, 2) AS DIA
 	--, SUBSTRING (DATA, 5, 2) AS MES
 	--, SUBSTRING (DATA, 1, 4) AS ANO
@@ -97,13 +77,6 @@ FROM VA_VCARGAS_SAFRA V
 		AND ZZA.ZZA_SAFRA = V.SAFRA
 		AND ZZA.ZZA_CARGA = V.CARGA
 		AND ZZA.ZZA_PRODUT = V.ITEMCARGA)
-		/*
-	-- BUSCA A CARGA NA 'CTE' GERADA INICIALMENTE
-	LEFT JOIN AGENDA
-		ON (AGENDA.TrnAgeAgendaSafra = V.SAFRA
-		AND AGENDA.TrnAgeTombadorFil = V.FILIAL
-		AND AGENDA.InspCargaCod      = V.CARGA)
-		*/
  WHERE V.STATUS != 'C'  -- NAO QUERO CARGAS CANCELADAS
 	AND AGLUTINACAO != 'O'  -- NAO QUERO CARGAS QUE TENHAM SIDO AGLUTINADAS EM OUTRAS, POIS NAO TEM CONTRANOTA.
 )
@@ -119,6 +92,7 @@ SELECT SAFRA AS GX0057_SAFRA
 	, DATEDIFF (MINUTE, GERACAO_CARGA, PESAGEM1) AS GX0057_MIN_FILA_RUA
 	, PESAGEM1 AS GX0057_PESAGEM1
 	, DATEDIFF (MINUTE, PESAGEM1, INI_MED_GRAU) AS GX0057_MIN_FILA_TOMBADOR
+	, DATEDIFF (MINUTE, AGENDAMENTO, INI_MED_GRAU) AS GX0057_MIN_AGENDA_TOMBADOR
 	, INI_MED_GRAU AS GX0057_INI_MED_GRAU
 	, DATEDIFF (MINUTE, INI_MED_GRAU, FIM_MED_GRAU) AS GX0057_MIN_MEDINDO_GRAU
 	, FIM_MED_GRAU AS GX0057_FIM_MED_GRAU
