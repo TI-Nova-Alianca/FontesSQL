@@ -137,8 +137,8 @@ DECLARE @VPORTADOR             VARCHAR(3);
 ---  1.0020  10/07/2017  SERGIO LUCCHINI  ALTERARADA A REGRA DE ENVIO DO TIPO DE FRETE. CHAMADO 77946
 ---          02/05/2018  ROBERT           Alterado nome do linked server de acesso ao ERP Protheus.
 ---          12/11/2018  ROBERT           Passa a buscar loja do cliente (@VLOJA_CLIENTE) na tabela SA1010 do ERP com base no CNPJ.
+---          23/03/2022  Robert           Versao inicial utilizando sinonimos
 ---
-
 ----------------------------------------------------------------------------------------------------------------------------------------------------------
 
 --PRINT 'MERCP_INSERE_PEDIDO_ERP_010 - P1'
@@ -202,8 +202,7 @@ FOR SELECT DB_PED_EMPRESA,         DB_PED_CLIENTE,    DB_PED_PRZPGTO,     DB_PED
       --PRINT ('@VFILIAL ' + @VFILIAL)
 
       SELECT @VA1_TPFRET = A1_TPFRET
---        FROM "192.168.1.2".protheus.dbo.SA1010  WITH (NOLOCK)
-        FROM LKSRV_PROTHEUS.protheus.dbo.SA1010  WITH (NOLOCK)
+        FROM INTEGRACAO_PROTHEUS_SA1 WITH (NOLOCK)
        WHERE A1_COD = SUBSTRING(RIGHT('000000' + CONVERT(VARCHAR(6), CAST(@VDB_PED_CLIENTE AS INT)), 6),1,6);
       SET @VCOD_ERRO = @@ERROR;
       IF @VCOD_ERRO > 0
@@ -215,7 +214,7 @@ FOR SELECT DB_PED_EMPRESA,         DB_PED_CLIENTE,    DB_PED_PRZPGTO,     DB_PED
 
 	  -- BUSCA A LOJA DO CLIENTE NO ERP. Robert, 12/11/2018
       SELECT @VLOJA_CLIENTE = A1_LOJA
-        FROM LKSRV_PROTHEUS.protheus.dbo.SA1010  WITH (NOLOCK)
+        FROM INTEGRACAO_PROTHEUS_SA1 WITH (NOLOCK)
        WHERE A1_CGC = (SELECT DB_CLI_CGCMF FROM DB_CLIENTE WHERE DB_CLI_CODIGO = @VDB_PED_CLIENTE) COLLATE DATABASE_DEFAULT
       SET @VCOD_ERRO = @@ERROR;
       IF @VCOD_ERRO > 0
@@ -463,14 +462,13 @@ FOR SELECT DB_PED_EMPRESA,         DB_PED_CLIENTE,    DB_PED_PRZPGTO,     DB_PED
                    @VB1_TIPCONV      = B1_TIPCONV,
                    @VB1_GRUPO        = B1_GRUPO,
                    @VB1_LOCPAD       = B1_LOCPAD
---              FROM "192.168.1.2".protheus.dbo.SB1010,
---                   "192.168.1.2".protheus.dbo.SF4010
-              FROM LKSRV_PROTHEUS.protheus.dbo.SB1010,
-                   LKSRV_PROTHEUS.protheus.dbo.SF4010
+              FROM INTEGRACAO_PROTHEUS_SB1 SB1,
+                   INTEGRACAO_PROTHEUS_SF4 SF4
              WHERE B1_COD            = LEFT(@VDB_PEDI_PRODUTO + '               ' , 15)
-               --AND F4_FILIAL         = @VFILIAL--@VDB_PED_EMPRESA   para fini nao deve avaliar filial
+               AND F4_FILIAL         = '  '
+               AND SF4.D_E_L_E_T_ = ' '
                AND F4_CODIGO         = @VDB_PEDI_OPERACAO
-               AND SB1010.D_E_L_E_T_ = ' ';
+               AND SB1.D_E_L_E_T_ = ' ';
             SET @VCOD_ERRO = @@ERROR;
             IF @VCOD_ERRO > 0
             BEGIN

@@ -71,6 +71,7 @@ DECLARE @VDB_CLIC_OPTSIMPLES VARCHAR(20)
 ---  1.00007  17/07/2017  ALENCAR          Gravar novo campo da Interface ZA1_SIMPNAC (77754)
 ---                                        Gravar novo campo da Interface ZA1_VACANAL e ZVA1_SATIV1 (77717)
 ---           02/05/2018  ROBERT           Alterado nome do linked server de acesso ao ERP Protheus.
+---           23/03/2022  Robert           Versao inicial utilizando sinonimos
 ---------------------------------------------------------------------
 
 DECLARE C CURSOR
@@ -142,8 +143,7 @@ FOR SELECT DB_CLI_TIPO_PESSOA, DB_CLI_CGCMF,      DB_CLI_CGCTE,      DB_CLI_COB_
       END
 
       SELECT @VCC2_CODMUN = CC2_CODMUN
---        FROM "192.168.1.2".protheus.dbo.CC2010
-        FROM LKSRV_PROTHEUS.protheus.dbo.CC2010
+        FROM INTEGRACAO_PROTHEUS_CC2
        WHERE UPPER(LTRIM(RTRIM(CC2_MUN))) = UPPER(LTRIM(RTRIM(@VDB_CLI_CIDADE)))
          AND UPPER(LTRIM(RTRIM(CC2_EST))) = UPPER(LTRIM(RTRIM(@VDB_CLI_ESTADO)));
 
@@ -268,7 +268,7 @@ FOR SELECT DB_CLI_TIPO_PESSOA, DB_CLI_CGCMF,      DB_CLI_CGCTE,      DB_CLI_COB_
          SET @VCOD_ERRO = @@ERROR;
          IF @VCOD_ERRO > 0
          BEGIN
-            SET @VERRO = '1 - ERRO INSERT SA1010:' + CAST(@PDB_CLI_CODIGO AS VARCHAR) + ' - ERRO BANCO: ' + CAST(@VCOD_ERRO AS VARCHAR);
+            SET @VERRO = '1 - ERRO INSERT ZA1010:' + CAST(@PDB_CLI_CODIGO AS VARCHAR) + ' - ERRO BANCO: ' + CAST(@VCOD_ERRO AS VARCHAR);
          END
 
       END
@@ -280,9 +280,9 @@ FOR SELECT DB_CLI_TIPO_PESSOA, DB_CLI_CGCMF,      DB_CLI_CGCTE,      DB_CLI_COB_
          SET @VCOD_ERRO = @@ERROR;
          IF @VCOD_ERRO > 0
          BEGIN
-            SET @VERRO = '1 - ERRO INSERT SA1010:' + @PDB_CLI_CODIGO + ' - ERRO BANCO: ' + @VCOD_ERRO;
+            SET @VERRO = '1 - ERRO INSERT ZA1010:' + @PDB_CLI_CODIGO + ' - ERRO BANCO: ' + @VCOD_ERRO;
          END 
---PRINT('FIM UPDATE: SA1010');
+--PRINT('FIM UPDATE: ZA1010');
       END
 
     FETCH NEXT FROM C

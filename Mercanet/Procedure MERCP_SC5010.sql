@@ -99,6 +99,7 @@ BEGIN
 --- 1.00003 21/11/2016 ALENCAR     Regra para definir a condicao de pagamento:
 ---                                   Se possuir letras ou for menor que 3 caracteres assume a condicao 666
 ---                                   Se for condicao 000 assume a 900
+---         23/03/2022 Robert      Versao inicial utilizando sinonimos
 ------------------------------------------------
 
 DECLARE @VDATA            DATETIME;
@@ -205,7 +206,7 @@ BEGIN TRY
 	BEGIN
 	PRINT('ENTROU NO INSERT/UPDATE')
 		SELECT @VC6_TES = C6_TES
-			FROM LKSRV_PROTHEUS.protheus.dbo.SC6010
+			FROM INTEGRACAO_PROTHEUS_SC6
 		WHERE C6_FILIAL = @VC5_FILIAL
 			AND C6_NUM    = @VC5_NUM
 			AND C6_ITEM   = '01';

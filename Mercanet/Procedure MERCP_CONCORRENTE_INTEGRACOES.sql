@@ -449,7 +449,7 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---                                        NOTAS FISCAIS - DEVOLUCOES              35
 ---                                        NOTAS FISCAIS (VENDAS, BONIFICACOES E TRANSFERENCIAS) 37
 ---                                        PRODUTOS                                40
----                                        LISTAS DE PREÇOS (CAPA E ITEM)          41
+---                                        LISTAS DE PREï¿½OS (CAPA E ITEM)          41
 ---                                        TITULOS                                 50
 ---                                        FAMILIA DE PRODUTOS (LINHA DE PRODUTO)  8004
 ---                                        REPRESENTANTES                          8005
@@ -486,7 +486,7 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---           07/10/2020  ROBERT           TRATAMENTO PARA NOVO CAMPO E4_VAEXMER (DEIXAR A CONDICAO INATIVA QUANDO CONTIVER 'N' NESSE CAMPO)
 ---           16/04/2021  CLAUDIA		   INCLUIDO O CAMPO DE % MAXIMO DE DESCONTO DA0_PERMAX
 ---           20/04/2021  CLAUDIA		   INCLUIDO O CAMPO DE % MAXIMO DE DESCONTO DA0_PERMIN
----           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRANÇA. GLPI: 9633
+---           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRANï¿½A. GLPI: 9633
 ---  1.00011  08/03/2022  JULIANO SOUZA    INCLUIDO REPRESENTANTE 2
 ---           17/03/2022  ROBERT           VERSAO INICIAL USANDO SONONIMOS PARA NOMES DE TABELAS
 ---
@@ -1148,9 +1148,7 @@ END;
                      @VB1_P_BRT     = B1_P_BRT,     @VB1_VAPLLAS = B1_VAPLLAS, @VB1_VAPLCAM = B1_VAPLCAM,
 --Andre 28/04/20     
 					 @VB1_QTDEMB    = B1_QTDEMB
---Robert 26/07/19    FROM LKSRV_PROTHEUS.protheus.dbo.SB1010
---Robert 26/07/19    WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
-                FROM LKSRV_PROTHEUS.protheus.dbo.SB1010 SB1, LKSRV_PROTHEUS.protheus.dbo.SB5010 SB5
+                FROM INTEGRACAO_PROTHEUS_SB1 SB1, INTEGRACAO_PROTHEUS_SB5 SB5
                WHERE SB1.R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 			     AND SB5.B5_FILIAL = SB1.B1_FILIAL AND SB5.B5_COD = SB1.B1_COD
 

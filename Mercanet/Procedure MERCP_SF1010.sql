@@ -150,7 +150,8 @@ BEGIN
 ---  03/09/2018  ALENCAR          TRATAR A VARIAVEL @VSERIE COM TAMANHO 3 (83573)
 ---  10/09/2018  SERGIO LUCCHINI  ALTERACAO NA BUSCA DO REPRESENTANTE, DB_CLIR_REPRES <> 0. CHAMADO 84157
 ---  28/09/2018  ALENCAR          AO BUSCAR O REPRESENTANTE NA CLIENTExREPRES BUSCA SEMPRE O REPRES ATIVO (84511)
----  26/02/2019  ROBERT (aLIANCA) BUSCA REPRESENTANTE NO FINANCEIRO (PROTHEUS) QUANDO NOTA DE DEVOLUCAO.
+---  26/02/2019  ROBERT (Alianca) BUSCA REPRESENTANTE NO FINANCEIRO (PROTHEUS) QUANDO NOTA DE DEVOLUCAO.
+---  23/03/2022  Robert           Versao inicial utilizando sinonimos
 
 ---------------------------------------------------------------------------------------------------------------------------------
 
@@ -236,7 +237,7 @@ BEGIN
   
    -- Busca representante no titulo gerado pela devolucao (para ficar consistente com o exporta dados do Protheus)
    SELECT TOP 1 @VREPRES = E1_VEND1
-     FROM LKSRV_PROTHEUS.protheus.dbo.SE1010
+     FROM INTEGRACAO_PROTHEUS_SE1
     WHERE D_E_L_E_T_ = ''
 	  AND E1_FILIAL  = @VF1_FILIAL
 	  AND E1_NUM     = @VF1_DOC

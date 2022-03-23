@@ -181,6 +181,7 @@ DECLARE @VNRO_NOTA          VARCHAR(10);
 ---  1.00011  19/06/2017  ALENCAR          VALIDAR QUANDO O C6_NUM POSSUIR LETRAS
 ---  1.00012  03/07/2017  SERGIO LUCCHINI  ALTERADO A REGRA DE ATUALIZACAO DA QUANTIDADE CANCELADA. CHAMADO 77801
 ---           02/05/2018  ROBERT           Alterado nome do linked server de acesso ao ERP Protheus.
+---           23/03/2022  Robert           Versao inicial utilizando sinonimos
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 BEGIN TRY
@@ -242,8 +243,7 @@ SELECT @VC5_VEND1   = RTRIM(C5_VEND1),
        @VC5_CLIENTE = C5_CLIENTE,
        @VC5_CLIENTE = C5_CLIENTE,
        @VC5_EMISSAO = C5_EMISSAO
---  FROM "192.168.1.2".protheus.dbo.SC5010
-  FROM LKSRV_PROTHEUS.protheus.dbo.SC5010
+  FROM INTEGRACAO_PROTHEUS_SC5
  WHERE C5_FILIAL  = @VC6_FILIAL
    AND C5_NUM     = @VC6_NUM
    AND D_E_L_E_T_ = ' ';

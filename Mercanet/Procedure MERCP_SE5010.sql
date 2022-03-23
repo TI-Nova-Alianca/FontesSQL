@@ -122,6 +122,7 @@ DECLARE @V_TEM_SE1        FLOAT;
 ---  1.00001  28/04/2016  ALENCAR          DESENVOLVIMENTO - Integra MCR02
 ---  1.00002  31/10/2016  ALENCAR          Conversao Nova Alianca
 ---           02/05/2018  ROBERT           Alterado nome do linked server de acesso ao ERP Protheus.
+---           23/03/2022  Robert           Versao inicial utilizando sinonimos
 -------------------------------------------------------------------------
 
 BEGIN TRY
@@ -141,8 +142,7 @@ BEGIN TRY
 	SET @V_TEM_SE1 = 0;
 
 	SELECT @V_TEM_SE1 = 1
---	  FROM "192.168.1.2".protheus.dbo.SE1010
-	  FROM LKSRV_PROTHEUS.protheus.dbo.SE1010
+	  FROM INTEGRACAO_PROTHEUS_SE1
 	 WHERE E1_FILIAL     = @VE5_FILIAL 
 	   AND E1_PREFIXO    = @VE5_PREFIXO 
 	   AND E1_NUM        = @VE5_NUMERO

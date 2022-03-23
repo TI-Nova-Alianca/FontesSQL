@@ -174,6 +174,7 @@ BEGIN
 --- 11/07/2017 ALENCAR     Passa a atualizar o campo DB_NOTAP_TIPO cfme operacao do item da nota
 --- 18/07/2017 ALENCAR     78226 - NÃO IMPORTAR ITENS QUE A OPERACAO FOR OUTRAS SAIDAS
 --- 02/05/2018 ROBERT      Alterado nome do linked server de acesso ao ERP Protheus.
+--- 23/03/2022 Robert      Versao inicial utilizando sinonimos
 ------------------------------------------------
 
 DECLARE @VDATA              DATETIME;
@@ -204,8 +205,7 @@ BEGIN TRY
 	END
 
 	IF (SELECT F2_CHVNFE
---		  FROM "192.168.1.2".protheus.dbo.SF2010  
-		  FROM LKSRV_PROTHEUS.protheus.dbo.SF2010  
+		  FROM INTEGRACAO_PROTHEUS_SF2
 		 WHERE F2_FILIAL   = @VD2_FILIAL
 		   AND F2_DOC      = @VD2_DOC
 		   AND F2_SERIE    = @VD2_SERIE
@@ -260,14 +260,13 @@ BEGIN TRY
 		  SET @VDB_NOTAP_TIPO = 'V';
 	   END
 
-print '@VD2_TES ' + @VD2_TES
-print '@VDB_NOTAP_TIPO ' + @VDB_NOTAP_TIPO
+		print '@VD2_TES ' + @VD2_TES
+		print '@VDB_NOTAP_TIPO ' + @VDB_NOTAP_TIPO
 
 
 	   SET @V_TEM_VENDA = 0
 	   SELECT @V_TEM_VENDA = COUNT(1)
---		  FROM "192.168.1.2".protheus.dbo.SD2010 
-		  FROM LKSRV_PROTHEUS.protheus.dbo.SD2010 
+		  FROM INTEGRACAO_PROTHEUS_SD2
 			 , DB_TB_OPERS
 		 WHERE D2_FILIAL    = @VD2_FILIAL
 		   AND D2_DOC       = @VD2_DOC

@@ -218,6 +218,7 @@ BEGIN
 --- 06/07/2017 ALENCAR     Ajuste no @VINSERE
 ---                        Integrar o valor de ST (D1_ICMSRET)
 --- 02/05/2018 ROBERT      Alterado nome do linked server de acesso ao ERP Protheus.
+--- 23/03/2022 Robert      Versao inicial utilizando sinonimos
 -----------------------------------------------
 
 DECLARE @VDATA            DATETIME;
@@ -272,8 +273,7 @@ BEGIN TRY
 				 @VF1_DTDIGIT = F1_DTDIGIT,
 				 @VF1_FORNECE = F1_FORNECE,
 				 @VF1_LOJA    = F1_LOJA
---			FROM "192.168.1.2".protheus.dbo.SF1010   WITH (NOLOCK)
-			FROM LKSRV_PROTHEUS.protheus.dbo.SF1010   WITH (NOLOCK)
+			FROM INTEGRACAO_PROTHEUS_SF1 WITH (NOLOCK)
 		   WHERE F1_FILIAL   = @VD1_FILIAL
 			 AND F1_DOC      = @VD1_DOC
 			 AND F1_SERIE    = @VD1_SERIE

@@ -5,6 +5,10 @@ GO
 ALTER PROCEDURE [dbo].[MERCP_FORMACAO_PRECOS] AS
 BEGIN
 
+-- Cria sinonimos para os caminhos/nomes das tabelas, de modo que possa ser usada a mesma
+-- rotina de integracao, mas acessando o database correto cfe. cada ambiente.
+EXEC MERCP_CRIA_SINONIMOS_TABELAS;
+
 DECLARE @VDATA            DATETIME;
 DECLARE @VERRO            VARCHAR(1000) = '';
 DECLARE @VOBJETO                VARCHAR(200) = 'MERCP_FORMACAO_PRECOS';
@@ -71,6 +75,7 @@ DECLARE @VFATOR_INI     INT
 ---  1.00007  07/11/2017  ALENCAR        Alterado o intervalo de codigos utilizados
 ---  1.00008  09/11/2017  ALENCAR        Ajuste ao inserir a chave primaria da DB_CONC_LUCRAT_FX
 ---  1.00009  11/12/2019  ANDRE			 Ajustada integração DB_LUC_FATOR e DB_LUC_FATOR_PRODUTO
+---           23/03/2022  Robert     VERSAO INICIAL USANDO SONONIMOS PARA NOMES DE TABELAS
 ----------------------------------------------------------------------------------------------------------------------------
 
 set nocount on;
@@ -149,7 +154,7 @@ set nocount on;
 
      DECLARE C_VA_PERCOMP CURSOR   
    FOR SELECT CODCLI, CODPRO, CUSTOPRO, MARGEM, RAPEL, PFRETE, PERTOT, MARGEM_BLQ
-           FROM LKSRV_PROTHEUS.protheus.dbo.MER_PERCOMP
+           FROM INTEGRACAO_PROTHEUS_MER_PERCOMP
       ORDER BY CODCLI
 
    OPEN C_VA_PERCOMP
@@ -447,7 +452,7 @@ print '@V_NRO_REGRAS_POL ' + cast(@V_NRO_REGRAS_POL as varchar)
           , (SELECT ISNULL(MAX(DB_CLIE_SEQ), 0) + 1 
                FROM DB_CLIENTE_ECON 
             WHERE DB_CLIE_CODIGO = CAST(CODCLI AS FLOAT))  SEQ_MAX
-             FROM LKSRV_PROTHEUS.protheus.dbo.MER_PERCOMP
+             FROM INTEGRACAO_PROTHEUS_MER_PERCOMP
         GROUP BY CODCLI
           ) AS SOURCE
      ON ( TARGET.DB_CLIE_CODIGO = SOURCE.CODCLI 
@@ -500,7 +505,7 @@ print '@V_NRO_REGRAS_POL ' + cast(@V_NRO_REGRAS_POL as varchar)
                          , CUSTOPRO 
                , '1'    TIPO
                , '01'   EMPRESA
-             FROM LKSRV_PROTHEUS.protheus.dbo.MER_PERCOMP
+             FROM INTEGRACAO_PROTHEUS_MER_PERCOMP
           ) AS SOURCE
      ON ( TARGET.DB_CUSTO_PRODUTO = SOURCE.CODPRO COLLATE SQL_Latin1_General_CP1_CI_AS
        AND TARGET.DB_CUSTO_ANO     = SOURCE.ANO
@@ -573,7 +578,7 @@ print '@V_NRO_REGRAS_POL ' + cast(@V_NRO_REGRAS_POL as varchar)
 			  ,CLIENTE + '-' + NOME_CLIENTE
 			  ,PRODUTO
 			  ,PERC_RAPEL
-			  FROM LKSRV_PROTHEUS.protheus.dbo.VA_VRAPEL_PADRAO
+			  FROM INTEGRACAO_PROTHEUS_VA_VRAPEL_PADRAO
 			  WHERE ATIVO = 'S'
 			  AND PRODUTO = ''
 
@@ -644,7 +649,7 @@ print '@V_NRO_REGRAS_POL ' + cast(@V_NRO_REGRAS_POL as varchar)
 			  ,CLIENTE + '-' + NOME_CLIENTE
 			  ,PRODUTO
 			  ,PERC_RAPEL
-			  FROM LKSRV_PROTHEUS.protheus.dbo.VA_VRAPEL_PADRAO
+			  FROM INTEGRACAO_PROTHEUS_VA_VRAPEL_PADRAO
 			  WHERE ATIVO = 'S'
 			  AND PRODUTO != ''
 
