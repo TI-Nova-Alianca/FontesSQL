@@ -3,14 +3,14 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
-
-
-
 ALTER PROCEDURE [dbo].[MERCP_CONCORRENTE_INTEGRACOES] (@P_TIPO INT) AS
 
 BEGIN
+
+-- Cria sinonimos para os caminhos/nomes das tabelas, de modo que possa ser usada a mesma
+-- rotina de integracao, mas acessando o database correto cfe. cada ambiente.
+EXEC MERCP_CRIA_SINONIMOS_TABELAS;
+
 
 DECLARE @VOBJETO       VARCHAR(100) SELECT @VOBJETO = 'MERCP_CONCORRENTE_INTEGRACOES';
 DECLARE @VDATA         DATETIME;
@@ -72,7 +72,7 @@ DECLARE @VA1_FILIAL   VARCHAR(50),  @VA1_COD      VARCHAR(50),  @VA1_LOJA     VA
         @VA1_TPISSRS  VARCHAR(50),  @VA1_CTARE    VARCHAR(50),  @VA1_RECFET   VARCHAR(50),  @VA1_MSBLQL   VARCHAR(1),   @VA1_VACANAL  VARCHAR(100),
         @VA1_SIMPNAC  INT,          @VA1_OBSALI   VARCHAR(50),  @VA1_CNAE     VARCHAR(15),  @VA1_VAREGE   VARCHAR(10),  @VA1_VAOC     VARCHAR(50),
         @VA1_VAPROMO  VARCHAR(50),	@VA1_CONTAT3  VARCHAR(15),	@VA1_TELCOB   VARCHAR(15),	@VA1_VAEMLF   VARCHAR(60),	@VA1_VABCOF   VARCHAR(3),
-		@VA1_VAAGFIN  VARCHAR(5),   @VA1_VACTAFN  VARCHAR(12),  @VA1_VACGCFI  VARCHAR(14);
+		@VA1_VAAGFIN  VARCHAR(5),   @VA1_VACTAFN  VARCHAR(12),  @VA1_VACGCFI  VARCHAR(14),  @VA1_VEND2    VARCHAR(50),  @VA1_TABELA2  VARCHAR(50);
 
 -- VARIAVEIS PARA REPRESENTANE (SA3)
 DECLARE @VA3_FILIAL   VARCHAR(50),  @VA3_COD      VARCHAR(50),  @VA3_NOME     VARCHAR(50),  @VA3_NREDUZ   VARCHAR(50),  @VA3_END      VARCHAR(50),
@@ -449,7 +449,7 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---                                        NOTAS FISCAIS - DEVOLUCOES              35
 ---                                        NOTAS FISCAIS (VENDAS, BONIFICACOES E TRANSFERENCIAS) 37
 ---                                        PRODUTOS                                40
----                                        LISTAS DE PREÇOS (CAPA E ITEM)          41
+---                                        LISTAS DE PRE�OS (CAPA E ITEM)          41
 ---                                        TITULOS                                 50
 ---                                        FAMILIA DE PRODUTOS (LINHA DE PRODUTO)  8004
 ---                                        REPRESENTANTES                          8005
@@ -470,23 +470,25 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---                                        CLASSIFICACAO COMERCIAL CLIENTE         8110
 ---                                        PROMOTORES                              8111
 ---  1.00002  21/11/2016  ALENCAR          PASSA POR PARAMETRO O NOVO CAMPO NA DA0 - DA0_VAESDI, QUE DEFINE SE A LISTA E E=ESTATICA; D=DINAMICA.
----                                        NOVOS CAMPOS NA INTEGRACAO DE PRODUTOS (SB1010)
----  1.00003  24/02/2017  ALENCAR          PASSA NOVO PARAMETRO @VA1_OBSALI NA CLIENTE SA1010
----  1.00004  13/03/2017  ALENCAR          PASSA NOVO PARAMETRO @VB1_P_BRT NA PRODUTO SB1010
----                                        PASSA NOVO PARAMETRO @VA1_CNAE NA CLIENTE SA1010
+---                                        NOVOS CAMPOS NA INTEGRACAO DE PRODUTOS (SB1)
+---  1.00003  24/02/2017  ALENCAR          PASSA NOVO PARAMETRO @VA1_OBSALI NA CLIENTE SA1
+---  1.00004  13/03/2017  ALENCAR          PASSA NOVO PARAMETRO @VB1_P_BRT NA PRODUTO SB1
+---                                        PASSA NOVO PARAMETRO @VA1_CNAE NA CLIENTE SA1
 ---  1.00005  13/03/2017  ALENCAR          IMPLEMENTADO NOVA INTEGRACAO DO CADASTRO DE CLASSIFICACAO COMERCIAL CLIENTE (8110)
 ---  1.00006  14/06/2017  ALENCAR          PARAMETRO A1_VAREGE NA SA1
 ---  1.00007  16/06/2017  ALENCAR          PARAMETRO F4_MARGEM NA SF4
 ---  1.00008  19/06/2017  ALENCAR          PARAMETRO C5_VAPDMER NA SC5
 ---  1.00009  03/07/2017  SERGIO LUCCHINI  PARAMETRO @VA1_VAOC NA SA1
----                                        PARAMETRO @VB1_VAPLLAS E @VB1_VAPLCAM NA SB1010
+---                                        PARAMETRO @VB1_VAPLLAS E @VB1_VAPLCAM NA SB1
 ---  1.00010  23/05/2018  SERGIO LUCCHINI  INCLUIDO A INTEGRACAO DE PROMOTORES. CHAMADO 81267
 ---           19/06/2018  ROBERT           NAO ESTAVA ENVIANDO PARAMETRO @VA1_VAPROMO PARA A PROCEDURE 'MERCP_SA1010'
 ---           26/07/2019  ROBERT           DESABILITADA LEITURA CAMPOS B1_VAEANUN E B1_VADUNCX. PASSA A USAR CPOS PADRAO B5_2CODBAR e B1_CODBAR.
 ---           07/10/2020  ROBERT           TRATAMENTO PARA NOVO CAMPO E4_VAEXMER (DEIXAR A CONDICAO INATIVA QUANDO CONTIVER 'N' NESSE CAMPO)
 ---           16/04/2021  CLAUDIA		   INCLUIDO O CAMPO DE % MAXIMO DE DESCONTO DA0_PERMAX
 ---           20/04/2021  CLAUDIA		   INCLUIDO O CAMPO DE % MAXIMO DE DESCONTO DA0_PERMIN
----           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRANÇA. GLPI: 9633
+---           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRAN�A. GLPI: 9633
+---  1.00011  08/03/2022  JULIANO SOUZA    INCLUIDO REPRESENTANTE 2
+---           17/03/2022  ROBERT           VERSAO INICIAL USANDO SONONIMOS PARA NOMES DE TABELAS
 ---
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -509,7 +511,7 @@ BEGIN
           A4_CEP,     A4_EST,       A4_CGC,    A4_TEL,    A4_TELEX, A4_CONTATO, A4_INSEST,
           A4_EMAIL,   A4_HPAGE,     A4_BAIRRO, A4_DDI,    A4_DDD,   A4_ENDPAD,  D_E_L_E_T_,
           R_E_C_N_O_, R_E_C_D_E_L_, A4_ESTFIS, A4_LOCAL
-     FROM LKSRV_PROTHEUS.protheus.dbo.SA4010
+	 FROM INTEGRACAO_PROTHEUS_SA4
      OPEN @C_TRANSPORTADORAS
     FETCH NEXT FROM @C_TRANSPORTADORAS
      INTO @VA4_FILIAL,  @VA4_COD,       @VA4_NOME,   @VA4_NREDUZ, @VA4_VIA,   @VA4_END,     @VA4_MUN,
@@ -549,7 +551,7 @@ BEGIN
    SET @C_TPPROD = CURSOR STATIC FOR
    SELECT ZX5_FILIAL,  ZX5_TABELA,  ZX5_CHAVE,   ZX5_DESCRI,   ZX5_18COD,   ZX5_18DESC, D_E_L_E_T_,  R_E_C_N_O_,
           ZX5_39COD,   ZX5_39DESC,  ZX5_40COD,   ZX5_40DESC, ZX5_46COD,   ZX5_46DESC
-     FROM LKSRV_PROTHEUS.protheus.dbo.ZX5010
+     FROM INTEGRACAO_PROTHEUS_ZX5
     WHERE ZX5_TABELA = '40'
       AND ZX5_FILIAL = '  '
         OPEN @C_TPPROD
@@ -585,7 +587,7 @@ END;
         SET @C_MARCA = CURSOR STATIC FOR
                 
             SELECT ZAZ_FILIAL, ZAZ_CLINF, ZAZ_NLINF, D_E_L_E_T_,  R_E_C_N_O_ 
-                FROM LKSRV_PROTHEUS.protheus.dbo.ZAZ010
+                FROM INTEGRACAO_PROTHEUS_ZAZ
 
         OPEN @C_MARCA
         FETCH NEXT FROM @C_MARCA
@@ -621,7 +623,7 @@ END;
             SELECT BM_FILIAL,  BM_GRUPO,  BM_DESC,  BM_PICPAD,  BM_PROORI,   BM_CODMAR,   BM_STATUS,  BM_GRUREL,
                    BM_TIPGRU,  BM_MARKUP, BM_PRECO, BM_LENREL,  BM_TIPMOV,   D_E_L_E_T_,  R_E_C_N_O_, R_E_C_D_E_L_,
                    BM_CLASGRU, BM_FORMUL
-                FROM LKSRV_PROTHEUS.protheus.dbo.SBM010
+                FROM INTEGRACAO_PROTHEUS_SBM
 
         OPEN @C_FAMILIA
         FETCH NEXT FROM @C_FAMILIA
@@ -661,7 +663,7 @@ END;
                 
             SELECT ZX5_FILIAL,  ZX5_TABELA,  ZX5_CHAVE,   ZX5_DESCRI,   ZX5_18COD,   ZX5_18DESC, D_E_L_E_T_,  R_E_C_N_O_,
                    ZX5_39COD,   ZX5_39DESC,  ZX5_40COD,   ZX5_40DESC,   ZX5_46COD,   ZX5_46DESC
-                FROM LKSRV_PROTHEUS.protheus.dbo.ZX5010
+                FROM INTEGRACAO_PROTHEUS_ZX5
                 WHERE ZX5_TABELA = '39'
                 AND ZX5_FILIAL = '  '
 
@@ -700,7 +702,7 @@ END;
         SET @C_CIDADES = CURSOR STATIC FOR
                 
             SELECT CC2_FILIAL   , CC2_EST      , CC2_CODMUN   , CC2_MUN      , D_E_L_E_T_   , R_E_C_N_O_   , R_E_C_D_E_L_
-                FROM LKSRV_PROTHEUS.protheus.dbo.CC2010
+                FROM INTEGRACAO_PROTHEUS_CC2
 
         OPEN @C_CIDADES
         FETCH NEXT FROM @C_CIDADES
@@ -733,7 +735,7 @@ BEGIN
    -- BUSCA TODOS OS REGISTROS DO CADASTRO
    SET @C_ESTADOS = CURSOR STATIC FOR
    SELECT X5_FILIAL, X5_TABELA, X5_CHAVE, X5_DESCRI, X5_DESCSPA, X5_DESCENG, D_E_L_E_T_, R_E_C_N_O_
-     FROM LKSRV_PROTHEUS.protheus.dbo.SX5010
+     FROM INTEGRACAO_PROTHEUS_SX5
     WHERE X5_TABELA = '12'
      OPEN @C_ESTADOS
     FETCH NEXT FROM @C_ESTADOS
@@ -769,7 +771,7 @@ END;
                    YA_NALADI, YA_ALADI,  YA_COMUM,   YA_MERCOSU, YA_SGPC,    YA_LI,        YA_PAIS_I,
                    YA_ABICS,  YA_SISEXP, YA_CODRIEX, D_E_L_E_T_, R_E_C_N_O_, R_E_C_D_E_L_, YA_CODFIES,
                    YA_SGLMEX, YA_NASCIO, YA_CODERP
-              FROM LKSRV_PROTHEUS.protheus.dbo.SYA010
+              FROM INTEGRACAO_PROTHEUS_SYA
 
         OPEN @C_PAISES
         FETCH NEXT FROM @C_PAISES
@@ -814,7 +816,7 @@ END;
                 
             SELECT ZX5_FILIAL, ZX5_TABELA, ZX5_CHAVE, ZX5_DESCRI, ZX5_18COD, ZX5_18DESC, D_E_L_E_T_, R_E_C_N_O_,
                    ZX5_39COD,   ZX5_39DESC, ZX5_40COD,   ZX5_40DESC,   ZX5_46COD,   ZX5_46DESC
-                FROM LKSRV_PROTHEUS.protheus.dbo.ZX5010
+                FROM INTEGRACAO_PROTHEUS_ZX5
                 WHERE ZX5_TABELA = '18'
                 AND ZX5_CHAVE <> ' '
 
@@ -853,7 +855,7 @@ BEGIN
    -- BUSCA TODOS OS REGISTROS DO CADASTRO
    SET @C_RAMOS_2 = CURSOR STATIC FOR
    SELECT X5_FILIAL, X5_TABELA, X5_CHAVE, X5_DESCRI, X5_DESCSPA, X5_DESCENG, D_E_L_E_T_, R_E_C_N_O_
-     FROM LKSRV_PROTHEUS.protheus.dbo.SX5010
+     FROM INTEGRACAO_PROTHEUS_SX5
     WHERE X5_TABELA = 'T3' 
      OPEN @C_RAMOS_2
     FETCH NEXT FROM @C_RAMOS_2
@@ -887,7 +889,7 @@ END;
         SET @C_PORTADORES = CURSOR STATIC FOR
                 
             SELECT A6_COD     , A6_AGENCIA , A6_DVAGE   , A6_NUMCON  , A6_DVCTA   , A6_NOME    , A6_FILIAL 
-                FROM LKSRV_PROTHEUS.protheus.dbo.SA6010
+                FROM INTEGRACAO_PROTHEUS_SA6
 
         OPEN @C_PORTADORES
         FETCH NEXT FROM @C_PORTADORES
@@ -920,7 +922,7 @@ END;
         SET @C_CLASCOM = CURSOR STATIC FOR
                 
             SELECT I.CC3_FILIAL, I.CC3_COD, I.CC3_DESC, I.D_E_L_E_T_, I.R_E_C_N_O_
-                FROM LKSRV_PROTHEUS.protheus.dbo.CC3010 I
+                FROM CC3 I
 
         OPEN @C_CIDADES
         FETCH NEXT FROM @C_CIDADES
@@ -954,7 +956,7 @@ BEGIN
    SET @C_PROMOTORES = CURSOR STATIC FOR
    SELECT ZX5_FILIAL, ZX5_TABELA, ZX5_CHAVE, ZX5_DESCRI, ZX5_18COD, ZX5_18DESC, D_E_L_E_T_, R_E_C_N_O_,
           ZX5_39COD,  ZX5_39DESC, ZX5_40COD, ZX5_40DESC, ZX5_46COD, ZX5_46DESC
-     FROM LKSRV_PROTHEUS.protheus.dbo.ZX5010
+     FROM INTEGRACAO_PROTHEUS_ZX5
     WHERE ZX5_TABELA = '46'
      OPEN @C_PROMOTORES
     FETCH NEXT FROM @C_PROMOTORES
@@ -1033,8 +1035,9 @@ END;
                      @VA1_TPISSRS = A1_TPISSRS, @VA1_CTARE   = A1_CTARE,    @VA1_RECFET  = A1_RECFET,  @VD_E_L_E_T_ = D_E_L_E_T_, @VR_E_C_N_O_ = R_E_C_N_O_,
                      @VA1_MSBLQL  = A1_MSBLQL,  @VA1_VACANAL = A1_VACANAL,  @VA1_SIMPNAC = A1_SIMPNAC, @VA1_OBSALI  = A1_OBSALI,  @VA1_CNAE    = A1_CNAE,
                      @VA1_VAREGE  = A1_VAREGE,  @VA1_VAOC    = A1_VAOC,     @VA1_VAPROMO = A1_VAPROMO, @VA1_CONTAT3 = A1_CONTAT3, @VA1_TELCOB  = A1_TELCOB,
-					 @VA1_VAEMLF  = A1_VAEMLF, @VA1_VABCOF   = A1_VABCOF,   @VA1_VAAGFIN = A1_VAAGFIN, @VA1_VACTAFN = A1_VACTAFN, @VA1_VACGCFI = A1_VACGCFI
-                FROM LKSRV_PROTHEUS.protheus.dbo.SA1010
+					 @VA1_VAEMLF  = A1_VAEMLF, @VA1_VABCOF   = A1_VABCOF,  @VA1_VAAGFIN = A1_VAAGFIN, @VA1_VACTAFN = A1_VACTAFN, @VA1_VACGCFI = A1_VACGCFI,
+					 @VA1_VEND2   = A1_VEND2,  @VA1_TABELA2  = A1_TABELA2 
+               FROM INTEGRACAO_PROTHEUS_SA1
                WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
               EXEC [dbo].[MERCP_SA1010] 0, @VA1_FILIAL,  @VA1_COD,     @VA1_LOJA,    @VA1_NOME,    @VA1_PESSOA,  @VA1_CGC,     @VA1_END,     @VA1_BAIRRO,  @VA1_INSCR,
@@ -1053,7 +1056,7 @@ END;
                                            @VA1_TIPPER,  @VA1_COD_MUN, @VA1_SALFIN,  @VA1_SALFINM, @VA1_B2B,     @VA1_GRPVEN,  @VA1_VEND,    @VA1_CLICNV,  @VA1_SITUA,   @VA1_TPESSOA,
                                            @VA1_ABATIMP, @VA1_TPISSRS, @VA1_CTARE,   @VA1_RECFET,  @VD_E_L_E_T_, @VR_E_C_N_O_, @VA1_MSBLQL,  @VA1_VACANAL, @VA1_SIMPNAC, @VA1_OBSALI,
                                            @VA1_CNAE,    @VA1_VAREGE,  @VA1_VAOC,    @VA1_VAPROMO, @VA1_CONTAT3, @VA1_TELCOB,  @VA1_VAEMLF,  @VA1_VABCOF,  @VA1_VAAGFIN, @VA1_VACTAFN,
-										   @VA1_VACGCFI
+										   @VA1_VACGCFI, @VA1_VEND2,   @VA1_TABELA2
 
             END;
            ---------------------------
@@ -1078,7 +1081,7 @@ END;
                       @VA3_GRPREP  = A3_GRPREP,  @VA3_ISS     = A3_ISS,     @VA3_FAT_RH  = A3_FAT_RH,  @VA3_GRUPSAN = A3_GRUPSAN, @VA3_DEPEND    = A3_DEPEND,
                       @VA3_PEN_ALI = A3_PEN_ALI, @VA3_TIPVEND = A3_TIPVEND, @VD_E_L_E_T_ = D_E_L_E_T_, @VR_E_C_N_O_ = R_E_C_N_O_, @VR_E_C_D_E_L_ = R_E_C_D_E_L_,
                       @VA3_DDDTEL  = A3_DDDTEL,  @VA3_NUMRA   = A3_NUMRA,   @VA3_ATIVO   = A3_ATIVO
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SA3010
+                 FROM INTEGRACAO_PROTHEUS_SA3
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [dbo].[MERCP_SA3010] 0, @VA3_FILIAL, @VA3_COD,     @VA3_NOME,   @VA3_NREDUZ, @VA3_END,    @VA3_BAIRRO, @VA3_MUN,    @VA3_EST,    
@@ -1191,7 +1194,7 @@ END;
                       @VE4_ACRSFIN= E4_ACRSFIN,@VE4_SOLID  = E4_SOLID,  @VE4_PERCOM = E4_PERCOM,  @VE4_SUPER   = E4_SUPER,  @VE4_INFER  = E4_INFER,
                       @VE4_FATOR  = E4_FATOR,  @VE4_JURCART= E4_JURCART,@VE4_PLANO  = E4_PLANO,   @VD_E_L_E_T_ = D_E_L_E_T_,@VR_E_C_N_O_= R_E_C_N_O_,
                       @VR_E_C_D_E_L_= R_E_C_D_E_L_, @VE4_ACRES=E4_ACRES,@VE4_MSBLQL = E4_MSBLQL,  @VE4_VAEXMER = E4_VAEXMER
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SE4010
+                 FROM INTEGRACAO_PROTHEUS_SE4
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [dbo].[MERCP_SE4010] 0, @VE4_FILIAL, @VE4_CODIGO,  @VE4_TIPO,      @VE4_COND,   @VE4_DESCRI, @VE4_IPI,    @VE4_DDD,    @VE4_DESCFIN,
@@ -1230,7 +1233,7 @@ END;
                    ,  @VF4_BCRDCOF= F4_BCRDCOF,@VF4_TRANFIL= F4_TRANFIL,@VF4_OPEMOV = F4_OPEMOV,  @VF4_FRETAUT = F4_FRETAUT,@VF4_MKPCMP = F4_MKPCMP
                    ,  @VF4_ICMSST = F4_ICMSST, @VF4_BENSATF= F4_BENSATF,@VF4_AGRRETC= F4_AGRRETC, @VF4_TESE3   = F4_TESE3,  @VF4_IPIOBS = F4_IPIOBS
                    ,  @VF4_MKPSOL = F4_MKPSOL, @VF4_MARGEM = F4_MARGEM
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SF4010
+                 FROM INTEGRACAO_PROTHEUS_SF4
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [dbo].[MERCP_SF4010] 0, @VF4_FILIAL, @VF4_CODIGO,  @VF4_TIPO  , @VF4_ICM   , @VF4_IPI   , @VF4_CREDICM,@VF4_CREDIPI,@VF4_DUPLIC, 
@@ -1254,7 +1257,7 @@ END;
 
            ---------------------------
            ---- 41 - LISTAS DE PRECOS
-           ----        Listas de Preços sempre carrega a capa (db_preco = DA0010) e itens (db_preco_prod = DA1010)
+           ----        Listas de Precos sempre carrega a capa (db_preco = DA0) e itens (db_preco_prod = DA1)
            ---------------------------
            IF @P_TIPO = 41
            BEGIN
@@ -1262,19 +1265,19 @@ END;
                 ,     @VDA0_HORATE= DA0_HORATE,@VDA0_CONDPG= DA0_CONDPG,@VDA0_TPHORA= DA0_TPHORA, @VDA0_ATIVO  = DA0_ATIVO, @VDA0_FILIAL= DA0_FILIAL
                 ,     @VD_E_L_E_T_= D_E_L_E_T_,@VR_E_C_N_O_= R_E_C_N_O_,@VR_E_C_D_E_L_= R_E_C_D_E_L_,@VDA0_VAUF = DA0_VAUF,  @VDA0_VAESDI= DA0_VAESDI
 				,     @VDA0_PERMAX = DA0_PERMAX,@VDA0_PERMIN = DA0_PERMIN
-                 FROM LKSRV_PROTHEUS.protheus.dbo.DA0010
+                 FROM INTEGRACAO_PROTHEUS_DA0
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
        
                EXEC [dbo].[MERCP_DA0010] 0, @VDA0_CODTAB,@VDA0_DESCRI, @VDA0_DATDE, @VDA0_HORADE,@VDA0_DATATE,@VDA0_HORATE,@VDA0_CONDPG,@VDA0_TPHORA,
                                @VDA0_ATIVO, @VDA0_FILIAL,@VD_E_L_E_T_, @VR_E_C_N_O_,@VR_E_C_D_E_L_,@VDA0_VAUF,@VDA0_VAESDI,@VDA0_PERMAX,@VDA0_PERMIN
 
-                --- Busca todos os itens da lista de precos que está logada
+                --- Busca todos os itens da lista de precos que esta logada
                 SET @C_LISTA_PROD = CURSOR STATIC FOR
                 
                         SELECT DA1_FILIAL   , DA1_ITEM     , DA1_CODTAB   , DA1_CODPRO   , DA1_GRUPO    , DA1_REFGRD   , DA1_PRCVEN   , DA1_VLRDES   
                              , DA1_PERDES   , DA1_ATIVO    , DA1_FRETE    , DA1_ESTADO   , DA1_TPOPER   , DA1_QTDLOT   , DA1_INDLOT   , DA1_MOEDA    
                              , DA1_DATVIG   , D_E_L_E_T_   , R_E_C_N_O_   , R_E_C_D_E_L_ 
-                          FROM LKSRV_PROTHEUS.protheus.dbo.DA1010
+                          FROM INTEGRACAO_PROTHEUS_DA1
                          WHERE DA1_CODTAB = @VDA0_CODTAB
 
                   OPEN @C_LISTA_PROD
@@ -1308,7 +1311,7 @@ END;
 
            ---------------------------
            ---- 30 - PEDIDOS
-           ----        Pedidos sempre carrega a capa (db_pedido = SA5010) e itens (db_pedido_prod = SA6010)
+           ----        Pedidos sempre carrega a capa (db_pedido = SA5) e itens (db_pedido_prod = SA6)
            ---------------------------
            IF @P_TIPO = 30
            BEGIN
@@ -1328,7 +1331,7 @@ END;
                 ,     @VC5_KITREP = C5_KITREP, @VC5_TIPLIB = C5_TIPLIB, @VC5_TXMOEDA= C5_TXMOEDA, @VC5_DESCONT = C5_DESCONT,@VC5_PEDEXP = C5_PEDEXP
                 ,     @VC5_TPCARGA= C5_TPCARGA,@VC5_PDESCAB= C5_PDESCAB,@VC5_BLQ    = C5_BLQ,     @VC5_FORNISS = C5_FORNISS,@VC5_CONTRA = C5_CONTRA
                 ,     @VC5_VLR_FRT= C5_VLR_FRT,@VD_E_L_E_T_= D_E_L_E_T_,@VR_E_C_N_O_=R_E_C_N_O_,  @VR_E_C_D_E_L_= R_E_C_D_E_L_, @VC5_VAPDMER = C5_VAPDMER
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SC5010
+                 FROM INTEGRACAO_PROTHEUS_SC5
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [DBO].[MERCP_SC5010] 0, @VC5_FILIAL ,@VC5_NUM    , @VC5_TIPO   ,@VC5_CLIENTE,@VC5_LOJACLI,@VC5_CLIENT ,@VC5_LOJAENT,@VC5_TRANSP,
@@ -1341,7 +1344,7 @@ END;
                               @VC5_MENPAD , @VC5_OS     ,@VC5_SERIE  , @VC5_KITREP ,@VC5_TIPLIB ,@VC5_TXMOEDA,@VC5_DESCONT,@VC5_PEDEXP ,@VC5_TPCARGA,
                               @VC5_PDESCAB, @VC5_BLQ    ,@VC5_FORNISS, @VC5_CONTRA ,@VC5_VLR_FRT,@VD_E_L_E_T_,@VR_E_C_N_O_,@VR_E_C_D_E_L_, @VC5_VAPDMER
 
-                --- Busca todos os itens do pedido que está logado
+                --- Busca todos os itens do pedido que esta logado
                 SET @C_PEDIDO_PROD  = CURSOR STATIC FOR
                 
                        SELECT C6_FILIAL,      C6_ITEM,       C6_PRODUTO,    C6_DESCRI,     C6_UM,         C6_QTDVEN,      C6_PRCVEN,    C6_VALOR
@@ -1359,7 +1362,7 @@ END;
                           ,   C6_PEDCOM,      C6_ITPC,       C6_FILPED,     C6_TPDEDUZ,    C6_MOTDED,     C6_FORDED,      C6_LOJDED,    C6_SERDED
                           ,   C6_NFDED,       C6_VLNFD,      C6_PCDED,      C6_VLDED,      C6_ABATINS,    C6_CODLAN,      D_E_L_E_T_,   R_E_C_N_O_
                           ,   R_E_C_D_E_L_
-                         FROM LKSRV_PROTHEUS.protheus.dbo.SC6010
+                         FROM INTEGRACAO_PROTHEUS_SC6
                         WHERE C6_FILIAL = @VC5_FILIAL
                           AND C6_NUM    = @VC5_NUM
 
@@ -1432,7 +1435,7 @@ END;
 
            ---------------------------
            ---- 37 - NOTAS FISCAIS VENDA
-           ----        Notas de Vendas sempre carrega a capa (db_nota_fiscal = SF2010) e itens (db_nota_prod = SD2010)
+           ----        Notas de Vendas sempre carrega a capa (db_nota_fiscal = SF2) e itens (db_nota_prod = SD2)
            ---------------------------
            IF @P_TIPO = 37
            BEGIN
@@ -1461,7 +1464,7 @@ END;
                 ,     @VF2_EMINFE = F2_EMINFE ,@VF2_HORNFE = F2_HORNFE ,@VF2_CODNFE = F2_CODNFE  ,@VF2_CREDNFE = F2_CREDNFE,@VD_E_L_E_T_= D_E_L_E_T_ 
                 ,  @VR_E_C_N_O_= R_E_C_N_O_,@VR_E_C_D_E_L_=R_E_C_D_E_L_,@VF2_VALACRS= F2_VALACRS ,@VF2_RECISS  = F2_RECISS ,@VF2_TIPORET= F2_TIPORET
                 ,     @VF2_HAWB   = F2_HAWB   ,@VF2_VLR_FRT= F2_VLR_FRT,@VF2_DTDIGIT= F2_DTDIGIT
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SF2010
+                 FROM INTEGRACAO_PROTHEUS_SF2
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [DBO].[MERCP_SF2010] 0, @VF2_FILIAL ,@VF2_DOC    , @VF2_SERIE  ,@VF2_CLIENTE,@VF2_LOJA   ,@VF2_COND   ,@VF2_DUPL   ,@VF2_EMISSAO,
@@ -1481,7 +1484,7 @@ END;
 
 
 
-                --- Busca todos os itens da nota que está logada
+                --- Busca todos os itens da nota que esta logada
                 SET @C_NOTA_PROD  = CURSOR STATIC FOR
                 
                        SELECT D2_FILIAL ,     D2_COD    ,    D2_UM     ,    D2_SEGUM  ,    D2_QUANT  ,    D2_PRCVEN ,     D2_TOTAL  ,   D2_VALIPI 
@@ -1503,7 +1506,7 @@ END;
                         ,     D2_DESCICM,     D2_BASEPS3,    D2_ALIQPS3,    D2_VALPS3 ,    D2_BASECF3,    D2_ALIQCF3,     D2_VALCF3 ,   D_E_L_E_T_ 
                         ,     R_E_C_N_O_,     R_E_C_D_E_L_,  D2_OP     ,    D2_TPESTR ,    D2_VALBRUT,    D2_REGWMS ,     D2_DTDIGIT,   D2_NUMCP   
                         ,     D2_CFPS   
-                         FROM LKSRV_PROTHEUS.protheus.dbo.SD2010
+                         FROM INTEGRACAO_PROTHEUS_SD2
                         WHERE D2_FILIAL = @VF2_FILIAL
                           AND D2_DOC    = @VF2_DOC
 
@@ -1587,7 +1590,7 @@ END;
 
            ---------------------------
            ---- 35 - NOTAS FISCAIS DEVOLUCAO
-           ----        Notas de Vendas sempre carrega a capa (db_nota_fiscal = SF1010) e itens (db_nota_prod = SD1010)
+           ----        Notas de Vendas sempre carrega a capa (db_nota_fiscal = SF1) e itens (db_nota_prod = SD1)
            ---------------------------
            IF @P_TIPO = 35
            BEGIN
@@ -1616,7 +1619,7 @@ END;
                 ,     @VF1_ESPECI3 = F1_ESPECI3,@VF1_VOLUME3 = F1_VOLUME3,@VF1_ESPECI4 = F1_ESPECI4,@VF1_VOLUME4 = F1_VOLUME4,@VF1_VALFAB  = F1_VALFAB 
                 ,     @VF1_VALFAC  = F1_VALFAC ,@VF1_VALFET  = F1_VALFET ,@VF1_PLACA   = F1_PLACA  ,@VD_E_L_E_T_ = D_E_L_E_T_,@VR_E_C_N_O_ = R_E_C_N_O_
                 ,     @VR_E_C_D_E_L_ = R_E_C_D_E_L_
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SF1010
+                 FROM INTEGRACAO_PROTHEUS_SF1
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [DBO].[MERCP_SF1010] 0, @VF1_FILIAL ,@VF1_DOC    , @VF1_SERIE ,@VF1_FORNECE,@VF1_LOJA   ,@VF1_COND   ,@VF1_DUPL   ,@VF1_EMISSAO,
@@ -1635,7 +1638,7 @@ END;
                               @VF1_VALFET , @VF1_PLACA  ,@VD_E_L_E_T_,@VR_E_C_N_O_,@VR_E_C_D_E_L_
 
 
-                --- Busca todos os itens da nota de devolucao que está logada
+                --- Busca todos os itens da nota de devolucao que esta logada
                 SET @C_NOTA_DEV_PROD  = CURSOR STATIC FOR
                 
                        SELECT D1_FILIAL   , D1_ITEM     , D1_COD      , D1_UM       , D1_QUANT    , D1_VUNIT    , D1_TOTAL    , D1_LOCAL    
@@ -1662,7 +1665,7 @@ END;
                             , D1_ITMVINC  , D1_ICMSDIF  , D1_GARANTI  , D1_PCCENTR  , D1_ITPCCEN  , D1_QTPCCEN  , D1_DFABRIC  , D1_ABATINS  
                             , D1_BASEFAB  , D1_ALIQFAB  , D1_VALFAB   , D1_BASEFAC  , D1_ALIQFAC  , D1_VALFAC   , D1_BASEFET  , D1_ALIQFET  
                             , D1_VALFET   , D1_CODLAN   , D1_AVLINSS  , D_E_L_E_T_  , R_E_C_N_O_  , R_E_C_D_E_L_ 
-                         FROM LKSRV_PROTHEUS.protheus.dbo.SD1010
+                         FROM INTEGRACAO_PROTHEUS_SD1
                         WHERE D1_FILIAL = @VF1_FILIAL
                           AND D1_DOC    = @VF1_DOC
 
@@ -1804,7 +1807,7 @@ END;
                       @VE1_VERCON  = E1_VERCON  ,@VE1_SUBCON  = E1_SUBCON  ,@VE1_VERSUB  = E1_VERSUB  ,@VE1_PLLOTE  = E1_PLLOTE  ,@VE1_PLOPELT = E1_PLOPELT, 
                       @VE1_CODRDA  = E1_CODRDA  ,@VE1_FORMREC = E1_FORMREC ,@VE1_BCOCLI  = E1_BCOCLI  ,@VE1_AGECLI  = E1_AGECLI  ,@VE1_CTACLI  = E1_CTACLI,  
                       @VE1_NUMCON  = E1_NUMCON  
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SE1010
+                 FROM INTEGRACAO_PROTHEUS_SE1
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [dbo].[MERCP_SE1010] 0,  @VE1_FILIAL  ,@VE1_PREFIXO ,@VE1_NUM     ,@VE1_PARCELA ,@VE1_EMISSAO ,@VE1_VENCTO  ,@VE1_VENCREA ,@VE1_CLIENTE ,@VE1_NOMCLI  
@@ -1863,7 +1866,7 @@ END;
                       @VE5_ORIGEM    = E5_ORIGEM     , @VE5_FORMAPG   = E5_FORMAPG , @VE5_TPDESC  = E5_TPDESC  ,@VE5_PRINSS      = E5_PRINSS ,@VE5_PRISS     = E5_PRISS,    
                       @VE5_PRETINS  = E5_PRETINS , @VE5_VRETINS   = E5_VRETINS , @VE5_IDMOVI  = E5_IDMOVI  ,@VE5_DTCANBX  = E5_DTCANBX,@VE5_FLDMED     = E5_FLDMED,    
                       @VE5_CGC      = E5_CGC    
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SE5010
+                 FROM INTEGRACAO_PROTHEUS_SE5
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [dbo].[MERCP_SE5010] 0,  @VE5_FILIAL   ,@VE5_DATA      ,@VE5_TIPO      ,@VE5_MOEDA     ,@VE5_VALOR      ,@VE5_NATUREZ   ,@VE5_BANCO     ,@VE5_AGENCIA,  
@@ -1896,7 +1899,7 @@ END;
                       @VE3_DATA       = E3_DATA    , @VE3_PREFIXO = E3_PREFIXO , @VE3_PARCELA = E3_PARCELA , @VE3_TIPO    = E3_TIPO    , @VE3_BAIEMI  = E3_BAIEMI,
                       @VE3_PEDIDO  = E3_PEDIDO  , @VE3_SEQ     = E3_SEQ     , @VE3_ORIGEM  = E3_ORIGEM  , @VE3_VENCTO  = E3_VENCTO  , @VD_E_L_E_T_ = D_E_L_E_T_,
                       @VR_E_C_N_O_ = R_E_C_N_O_  
-                 FROM LKSRV_PROTHEUS.protheus.dbo.SE3010
+                 FROM INTEGRACAO_PROTHEUS_SE3
                 WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
                EXEC [dbo].[MERCP_SE3010] 0, @VE3_FILIAL    , @VE3_VEND,        @VE3_NUM,         @VE3_EMISSAO   , @VE3_SERIE     , @VE3_CODCLI    , @VE3_LOJA,
@@ -1911,7 +1914,7 @@ END;
 
 
   
-            --- Após atualizar a informacao marca o registro como processado
+            --- Apos atualizar a informacao marca o registro como processado
             UPDATE DB_INTERFACE_PROTHEUS
                SET STATUS = 'PRO'
                  , DATA_PROCESSADO = GETDATE()
