@@ -5,7 +5,8 @@
 -- Historico de alteracoes:
 --
 
--- Para executar este script, deve-se conectar o servidor inde está o SQL da base teste (atualmente 192.168.1.7)
+-- Sugestao: copiar e colar numa sessao direto no servidor SQL da base teste
+-- Para executar este script, deve-se conectar o servidor onde está o SQL da base teste (atualmente 192.168.1.7)
 Use master
 GO
 
@@ -54,7 +55,7 @@ GO
 /*
 -- Verifica conteudo do arquivo (pode haver mais de 1 backup no arquivo). Nesse caso,
 -- usar WITH FILE= no comando de restore para especificar qual backup deve ser restaurado.
-declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 06-30 13-10-2021.bak'
+declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 12-30 02-01-2022.bak'
 --RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017

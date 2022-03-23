@@ -1,9 +1,9 @@
 
 -- Pesquisa por determinado nome de objeto no banco de dados
-declare @nome varchar (max) = 'OPENQUERY'
+declare @nome varchar (max) = 'MERCP_INSERE_PEDIDO_ERP'
 
 -- Define em qual banco de dados deve ser feita a pesquisa
-use protheus
+use MercanetPRD
 
 SELECT rtrim (OBJECT_NAME(sm.object_id)) AS object_name, rtrim (o.type_desc)
 	 FROM sys.sql_modules AS sm
