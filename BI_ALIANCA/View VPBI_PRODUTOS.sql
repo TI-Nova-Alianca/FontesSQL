@@ -3,6 +3,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
+
 -- View para o PowerBI ler dados dos demais sistemas
 -- Data: 13/10/2021
 -- Autor: Robert Koch
@@ -11,7 +12,7 @@ GO
 -- 31/03/2022 - Robert - Incluidos novos campos
 --
 
-ALTER VIEW [dbo].[VPBI_SB1]  -- PRODUTOS
+ALTER VIEW [dbo].[VPBI_PRODUTOS]  -- PRODUTOS
 AS 
 SELECT B1_COD
 	, B1_DESC
