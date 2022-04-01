@@ -9,6 +9,7 @@ AS
 -- View para integracao de cadastro com o FullWMS.
 -- Autor: Robert Koch
 -- Data:  14/11/2014
+--
 -- Historico de alteracoes:
 -- 07/06/2018 - Robert - Unior para exportar tambem para empresa 02 (almox.02-insumos/embalagens)
 --                     - Busca lastro e camadas no SB1 e nao mais no DC2 e DC3
@@ -16,6 +17,7 @@ AS
 -- 22/03/2022 - Robert - Criada coluna dias_validade cfe. chamado 18698 da Full
 -- 25/03/2022 - Robert - Campo B1_P_BRT substituido por B1_PESBRU
 --                     - Criado campo peso_liq
+--                     - Campos B1_VAPLLAS e B1_VAPLCAM devem ter dados (melhorias GLPI 11825)
 --
 
 -- Selecao de itens para a empresa 1 (logistica)
@@ -55,6 +57,8 @@ WHERE  SB1.D_E_L_E_T_ = ''
        AND B1_FILIAL = '  '
        AND SB1.B1_VAFULLW = 'S'
        AND SB1.B1_MSBLQL != '1'
+	  AND SB1.B1_VAPLLAS > 0
+	  AND SB1.B1_VAPLCAM > 0
 
 /* Por enquanto nao vamos implementar no AX 02. Robert, 22/03/2022
 union ALL
