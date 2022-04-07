@@ -18,6 +18,7 @@ AS
 -- 25/03/2022 - Robert - Campo B1_P_BRT substituido por B1_PESBRU
 --                     - Criado campo peso_liq
 --                     - Campos B1_VAPLLAS e B1_VAPLCAM devem ter dados (melhorias GLPI 11825)
+-- 07/04/2022 - Robert - Coluna 'peso_liq' deixa de ser lida do B1_PESO e passa a ser lida do B1_PESBRU.
 --
 
 -- Selecao de itens para a empresa 1 (logistica)
@@ -45,7 +46,7 @@ SELECT RTRIM(B1_COD) AS coditem,
        END AS inspecao,
        1 AS empresa,  -- AX 01 = empresa 1
        SB1.B1_PRVALID as dias_validade,
-       B1_PESO AS peso_liq
+       B1_PESBRU AS peso_liq -- B1_PESO AS peso_liq
 FROM   SB1010 SB1
        LEFT JOIN SB5010 SB5
             ON  (
