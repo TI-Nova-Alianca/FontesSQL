@@ -10,6 +10,7 @@ GO
 --
 -- Historico de alteracoes:
 -- 31/03/2022 - Robert - Incluidos novos campos
+-- 08/04/2022 - Robert - Adicionado B1_MSBLQL
 --
 
 ALTER VIEW [dbo].[VPBI_PRODUTOS]  -- PRODUTOS
@@ -22,6 +23,7 @@ SELECT B1_COD
 	, B1_VAMARCM -- VINCULADO A VPBI_MARCAS_COMERCIAIS
 	, B1_VALINEN -- VINCULADO A VPBI_LINHAS_ENVASE
     , B1_UM
+	, B1_MSBLQL
 FROM protheus.dbo.SB1010
 WHERE D_E_L_E_T_ = ''
 AND B1_FILIAL = '  '
