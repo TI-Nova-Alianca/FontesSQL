@@ -15,7 +15,10 @@ ALTER VIEW [dbo].[VA_VDADOS_OS] AS
 	-- Data:  01/12/2021
 	-- Historico de alteracoes:
 	-- 06/12/2021 - Robert - Criadas colunas MANUTENTOR1, MANUTENTOR2, 3 e 4.
-	-- 22/02/2022 - Robert - Adicionados alguma comentarios sobre as colunas
+	-- 22/02/2022 - Robert - Adicionados alguns comentarios sobre as colunas
+	-- 08/04/2022 - Robert - Melhorada a leitura de manutentores por OS:
+	--                         - Usa LEFT JOIN entre SLT e ST1
+	--                         - Desconsidera TL_REPFIM = 'S' (para trazer tambem os menutentores previstos para a OS)
 	--
 
 -- MONTA UMA CTE CONTENDO OS NOMES DOS PRINCIPAIS MANUTENTORES DE CADA O.S. EM COLUNAS,
@@ -34,10 +37,13 @@ WITH MANUTENTORES_POR_OS AS (
 				, ST1.T1_NOME
 				, SUM (TL_QUANTID) AS HORAS
 			FROM STL010 STL
-				, ST1010 ST1
-			WHERE STL.D_E_L_E_T_ = ''
+				LEFT JOIN ST1010 ST1
+					ON (ST1.D_E_L_E_T_ = ''
+					AND ST1.T1_FILIAL = '  '
+					AND ST1.T1_CODFUNC = STL.TL_CODIGO)
+				WHERE STL.D_E_L_E_T_ = ''
 				AND STL.TL_TIPOREG = 'M' -- MAO DE OBRA
-				AND STL.TL_REPFIM = 'S'  -- REALIZADO
+				--AND STL.TL_REPFIM = 'S'  -- REALIZADO
 				--AND TL_ORDEM in ('023203', '022422', '022162')
 				AND ST1.D_E_L_E_T_ = ''
 				AND ST1.T1_FILIAL = '  '
