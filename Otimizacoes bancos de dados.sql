@@ -6,6 +6,7 @@
 --
 -- Historico de alteracoes:
 -- 12/04/2022 - Robert - Criados indice por saida_id na tabela tb_wms_pedidos (GLPI 11905)
+-- 21/04/2022 - Robert - Criado indice na tabela tb_wms_movimentacoes
 --
 
 
@@ -437,6 +438,9 @@ CREATE NONCLUSTERED INDEX VA_AUX_MESES_SANOMES ON VA_AUX_MESES (SANOMES);
 
 -- Cria indices para melhorar leitura da tabela tb_wms_pedidos, usada pela view v_wms_pedido (integracao com Protheus)
 -- CREATE NONCLUSTERED INDEX tb_wms_pedidos_saida_id ON tb_wms_pedidos (saida_id)
+
+-- Cria indice para melhorar a leitura da tabela tb_wms_movimentacoes, usada pelo Protheus nas integracoes.
+-- CREATE NONCLUSTERED INDEX tb_wms_movimentacoes_status_protheus ON tb_wms_movimentacoes (status_protheus, dthr)
 
 -- Cria indices para melhorar a consulta de lctos contabeis nas 'consultas web'.
 --CREATE NONCLUSTERED INDEX VA_CT2_DEBITO on CT2010 (CT2_DEBITO, CT2_CREDIT, CT2_DATA, CT2_FILIAL) INCLUDE (D_E_L_E_T_)

@@ -34,3 +34,20 @@ select * from pedidos
 where rownum <= 100
 order by dthr desc
 */
+
+
+-- Procura por locais com mais de um item:
+select endereco_id, count (*)
+from wms_estoques_cd
+group by endereco_id
+having count (*) > 1
+
+select *
+from wms_estoques_cd
+where endereco_id = 4461
+
+select * from wms_enderecos
+where rownum <= 100
+--and id = 5761
+and endereco_formatado = 'I-56-5'
+
