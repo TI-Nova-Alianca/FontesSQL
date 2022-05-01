@@ -51,3 +51,7 @@ where rownum <= 100
 --and id = 5761
 and endereco_formatado = 'I-56-5'
 
+select wms_acertoestoquecd_id
+from wms_acerto_estoque_cd
+where rownum <= 100
+and trunc(dthr) between TO_DATE('20220428','YYYYMMDD') and TO_DATE('20220428','YYYYMMDD')

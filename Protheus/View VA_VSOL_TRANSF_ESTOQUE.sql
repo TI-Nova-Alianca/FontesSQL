@@ -11,6 +11,7 @@ GO
 -- Data:  07/07/2021
 -- Historico de alteracoes:
 -- 07/07/2021 - Robert - Deixa de usar tabela customizada e passa a usar a tabela padrao SYS_USR.
+-- 27/04/2022 - Robert - Testes fixos com almox.X B1_VAFULLW removidos (criei um usuario 'fullwms' no Protheus)
 --
 
 ALTER VIEW [dbo].[VA_VSOL_TRANSF_ESTOQUE] AS 
@@ -29,10 +30,10 @@ SELECT ZAG.*
                    AND U.USR_ID = ZZU.ZZU_USER
                    AND ZZU.ZZU_GRUPO = 'A' + ZAG.ZAG_ALMORI)
           , '')
-	   + CASE WHEN ZAG.ZAG_ALMORI IN ('01', '11') AND SB1.B1_VAFULLW = 'S'
-            THEN ',FULLWMS'
-            ELSE ''
-			END
+--	   + CASE WHEN ZAG.ZAG_ALMORI IN ('01', '11') AND SB1.B1_VAFULLW = 'S'
+--            THEN ',FULLWMS'
+--            ELSE ''
+--			END
        AS LIBERADORES_ALMORI
 
       ,ISNULL ((SELECT NOMES = STRING_AGG (UPPER (RTRIM (U.USR_CODIGO)), ',')
@@ -42,10 +43,10 @@ SELECT ZAG.*
                    AND U.USR_ID = ZZU.ZZU_USER
                    AND ZZU.ZZU_GRUPO = 'A' + ZAG.ZAG_ALMDST)
           , '')
-	   + CASE WHEN ZAG.ZAG_ALMDST IN ('01', '11') AND SB1.B1_VAFULLW = 'S'
-            THEN ',FULLWMS'
-            ELSE ''
-			END
+--	   + CASE WHEN ZAG.ZAG_ALMDST IN ('01', '11') AND SB1.B1_VAFULLW = 'S'
+--            THEN ',FULLWMS'
+--            ELSE ''
+--			END
        AS LIBERADORES_ALMDST
 , ''  -- POR ENQUANTO NAO VAI SER USADO
   AS LIBERADORES_PCP
