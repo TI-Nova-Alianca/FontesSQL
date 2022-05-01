@@ -305,52 +305,25 @@ BEGIN
 			SET @RET += '<pre style="padding-left: 40px;">'
 			IF (@NAWEB_USER = '')
 			BEGIN
-				SET @RET += 'Nada consta</br>'
+				SET @RET += 'Nada consta. Ao criar novo usuario, informar [' + FORMAT (@META_PESSOA, 'G') + '] no campo Codigo da Pessoa.' + '</br>'
 			END
 			ELSE
 			BEGIN
 				SET @RET += 'ID......: ' + @NAWEB_ID + '</br>'
 				SET @RET += 'Username: ' + @NAWEB_USER + ' </br>'
 				SET @RET += 'Situacao: ' + CASE WHEN @AD_ENABLED != 'S' THEN ' bloqueado ' ELSE ' ativo ' END + ' (cfe. Active Directory)</br>'
---				SET @RET += 'Perfis..: ' + @NAWEB_PERFIS + ' </br>'
 			END
 
-			-- Cria tabela demporaria de perfis deste usuario no NaWeb.
-/*			select row_number () over (order by sur.SecRoleId, sf.SecFunctionalityKey) as registro
-				, sur.SecRoleId
-				, sr.SecRoleDescription
-				, sf.SecFunctionalityKey
-				, sf.SecFunctionalityDescription
-				, '    Perfil ' + cast (sur.SecRoleId as varchar (max)) + ' - ' + SecRoleDescription + ' ' + SecFunctionalityKey + '<br>' as htm
-			into #NaWeb_perfis_do_usuario
-			from LKSRV_NAWEB.naweb.dbo.SecUserRole sur,
-				LKSRV_NAWEB.naweb.dbo.SecRole sr
-					left join LKSRV_NAWEB.naweb.dbo.SecFunctionalityRole sfr
-						left join LKSRV_NAWEB.naweb.dbo.SecFunctionality sf
-						on (sf.SecFunctionalityId = sfr.SecFunctionalityId)
-					on (sfr.SecRoleId = sr.SecRoleId)
-			where sur.SecUserId = @NAWEB_ID
-			and sr.SecRoleId = sur.SecRoleId
-			order by sur.SecRoleId, sf.SecFunctionalityKey
-*/
-			
-			-- Cria tabela demporaria de perfis x funcionalidades deste usuario no NaWeb,
+			-- Cria tabela temporaria de perfis x funcionalidades deste usuario no NaWeb,
 			-- jah com um campo em formato para ser exportado em html.
 			;with c as (
-			select row_number () over (order by sur.SecRoleId, sf.SecFunctionalityKey) as registro
-				, row_number () over (partition by sur.SecRoleId order by sf.SecFunctionalityKey) as seq_funcionalidade
-				, sur.SecRoleId
-				, sr.SecRoleDescription
-				, sf.SecFunctionalityKey
-				, sf.SecFunctionalityDescription
+			select row_number () over (order by v.SecRoleId, v.SecFunctionalityKey) as registro
+				, row_number () over (partition by v.SecRoleId order by v.SecFunctionalityKey) as seq_funcionalidade
+				, v.SecRoleId, v.SecFunctionalityKey, v.SecRoleDescription, v.SecFunctionalityDescription
 			from LKSRV_NAWEB.naweb.dbo.SecUserRole sur,
-				LKSRV_NAWEB.naweb.dbo.SecRole sr
-					left join LKSRV_NAWEB.naweb.dbo.SecFunctionalityRole sfr
-						left join LKSRV_NAWEB.naweb.dbo.SecFunctionality sf
-						on (sf.SecFunctionalityId = sfr.SecFunctionalityId)
-					on (sfr.SecRoleId = sr.SecRoleId)
-			where sur.SecUserId = 87
-			and sr.SecRoleId = sur.SecRoleId
+				LKSRV_NAWEB.naweb.dbo.VA_VPERFIS_X_FUNCIONALIDADES v
+			where sur.SecUserId = @NAWEB_ID
+			and v.SecRoleId = sur.SecRoleId
 			
 			)
 			select *
