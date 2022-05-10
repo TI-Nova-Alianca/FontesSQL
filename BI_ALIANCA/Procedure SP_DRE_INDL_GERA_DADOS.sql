@@ -1,25 +1,29 @@
 USE [BI_ALIANCA]
 GO
-/****** Object:  StoredProcedure [dbo].[SP_DRE_INDL_GERA_DADOS]    Script Date: 14/12/2021 14:06:46 ******/
+
+/****** Object:  StoredProcedure [dbo].[SP_DRE_INDL_GERA_DADOS]    Script Date: 10/05/2022 12:06:17 ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
+
 --
 -- Descricao: Gera dados iniciais (vendas) para consulta de DRE industrial
 -- Autor....: Robert Koch
 -- Data.....: julho/2019
 --
 -- Historico de alteracoes:
--- 18/08/2019 - Robert - Passa a trabalhar com 'ID de analise' para permitir usar a mesma tabela para dados de diferentes analises.
---                     - Acrescentada coluna TAB_PRC_LOJA
--- 24/09/2019 - Robert - Gravacao campos cliente e loja base.
--- 04/03/2020 - Robert - Removidas linhas comentariadas.
--- 05/03/2020 - Robert - Tratamento para a linha de envase 013 (em terceiros)
--- 09/03/2020 - Robert - Passa a gravar o item da nota (ITEMNF)
--- 30/03/2020 - Robert - Criada coluna VERBAS_RATEIO
--- 09/12/2020 - Robert - Function VA_DatetimeToVarchar trocada pela FORMAT (nativa do SQL).
--- 14/12/2021 - Robert - Passa a usar MAX(L2_TABELA) na leitura do faturamento para evitar risco de retornar mais de 1 registro.
+-- 18/08/2019 - Robert  - Passa a trabalhar com 'ID de analise' para permitir usar a mesma tabela para dados de diferentes analises.
+--                      - Acrescentada coluna TAB_PRC_LOJA
+-- 24/09/2019 - Robert  - Gravacao campos cliente e loja base.
+-- 04/03/2020 - Robert  - Removidas linhas comentariadas.
+-- 05/03/2020 - Robert  - Tratamento para a linha de envase 013 (em terceiros)
+-- 09/03/2020 - Robert  - Passa a gravar o item da nota (ITEMNF)
+-- 30/03/2020 - Robert  - Criada coluna VERBAS_RATEIO
+-- 09/12/2020 - Robert  - Function VA_DatetimeToVarchar trocada pela FORMAT (nativa do SQL).
+-- 14/12/2021 - Robert  - Passa a usar MAX(L2_TABELA) na leitura do faturamento para evitar risco de retornar mais de 1 registro.
+-- 10/05/2022 - Claudia - Alterado o peso bruto para B1_PESBRU. GLPI: 11822
 --
 
 ALTER PROCEDURE [dbo].[SP_DRE_INDL_GERA_DADOS]
@@ -213,7 +217,7 @@ BEGIN
 		,SUM (D2_ICMSRET) AS ST
 		,SUM (D2_VRAPEL) AS RAPELPREV
 		,SUM ((D2_PRCVEN * D2_QUANT + SD2.D2_PVCOND) * SD2.D2_COMIS1 / 100) AS COMISPREV
-		,SUM (ISNULL (CASE F2_PBRUTO WHEN 0 THEN 0 ELSE ROUND(C5_MVFRE * (B1_P_BRT * D2_QUANT) / F2_PBRUTO, 2) END, 0)) AS FRETEPREV
+		,SUM (ISNULL (CASE F2_PBRUTO WHEN 0 THEN 0 ELSE ROUND(C5_MVFRE * (B1_PESBRU * D2_QUANT) / F2_PBRUTO, 2) END, 0)) AS FRETEPREV
 		,SUM (ISNULL (SD2.D2_TOTAL * DESCFIN.DFRAPEL   / CASE SF2.F2_VALMERC WHEN 0 THEN 1 ELSE SF2.F2_VALMERC END, 0)) AS DF_RAPEL
 		,SUM (ISNULL (SD2.D2_TOTAL * DESCFIN.DFENCART  / CASE SF2.F2_VALMERC WHEN 0 THEN 1 ELSE SF2.F2_VALMERC END, 0)) AS DF_ENCART
 		,SUM (ISNULL (SD2.D2_TOTAL * DESCFIN.DFFEIRAS  / CASE SF2.F2_VALMERC WHEN 0 THEN 1 ELSE SF2.F2_VALMERC END, 0)) AS DF_FEIRAS
@@ -283,7 +287,7 @@ BEGIN
 		AND SD2.D_E_L_E_T_ = ''
 		AND SD2.D2_EMISSAO BETWEEN @IN_DATA_INI_NF and @IN_DATA_FIM_NF
 		AND SD2.D2_TIPO != 'D'
-	GROUP BY D2_FILIAL, D2_EMISSAO, D2_DOC, D2_SERIE, D2_CLIENTE, D2_LOJA, D2_COD, F4_MARGEM, F2_CARGA, SF2.F2_PBRUTO, SC5.C5_MVFRE, SB1.B1_P_BRT, SB1.B1_GRPEMB, SB1.B1_VALINEN, SB1.B1_LITROS, SB1.B1_CODLIN, SD2.D2_QUANT, D2_ITEM
+	GROUP BY D2_FILIAL, D2_EMISSAO, D2_DOC, D2_SERIE, D2_CLIENTE, D2_LOJA, D2_COD, F4_MARGEM, F2_CARGA, SF2.F2_PBRUTO, SC5.C5_MVFRE, SB1.B1_PESBRU, SB1.B1_GRPEMB, SB1.B1_VALINEN, SB1.B1_LITROS, SB1.B1_CODLIN, SD2.D2_QUANT, D2_ITEM
 	CREATE NONCLUSTERED INDEX IND1 ON #FAT_BONIF (PRODUTO)
 	PRINT 'LEITURA DO FATURAMENTO FINALIZADA'
 
@@ -319,7 +323,7 @@ BEGIN
 		,SUM (D1_ICMSRET) AS ST
 		,SUM (ISNULL (SD2_ORIG.D2_VRAPEL, 0)) AS RAPELPREV
 		,SUM (ISNULL ((SD2_ORIG.D2_PRCVEN * SD2_ORIG.D2_QUANT + SD2_ORIG.D2_PVCOND) * SD2_ORIG.D2_COMIS1 / 100, 0)) AS COMISPREV
-		,SUM (ISNULL (CASE F2_PBRUTO WHEN 0 THEN 0 ELSE ROUND(C5_MVFRE * (B1_P_BRT * D2_QUANT) / F2_PBRUTO, 2) END, 0)) AS FRETEPREV
+		,SUM (ISNULL (CASE F2_PBRUTO WHEN 0 THEN 0 ELSE ROUND(C5_MVFRE * (B1_PESBRU * D2_QUANT) / F2_PBRUTO, 2) END, 0)) AS FRETEPREV
 		,0 AS DF_RAPEL, 0 AS DF_ENCART, 0 AS DF_FEIRAS, 0 AS DF_FRETES, 0 AS DF_DESCONT, 0 AS DF_DEVOL, 0 AS DF_CAMPANH, 0 AS DF_ABLOJA, 0 AS DF_CONTRAT, 0 AS DF_OUTROS
 		,'' AS LOTE, '' AS FILIAL_FABRICACAO, '' AS OP_FABRICACAO
 		,B1_GRPEMB, B1_VALINEN, SB1.B1_CODLIN
@@ -700,3 +704,6 @@ BEGIN
 			AND SA1.A1_LOJA = LOJA
 
 END
+GO
+
+

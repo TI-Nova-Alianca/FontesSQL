@@ -1,7 +1,15 @@
+USE [protheus]
+GO
+
+/****** Object:  View [dbo].[v_wms_item]    Script Date: 10/05/2022 13:44:04 ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
+
+
+
 
 ALTER VIEW [dbo].[v_wms_item]
 AS
@@ -15,9 +23,10 @@ AS
 --                     - Busca lastro e camadas no SB1 e nao mais no DC2 e DC3
 -- 05/07/2018 - Robert - Exporta apenas tipo ME para a empresa 2
 -- 22/03/2022 - Robert - Criada coluna dias_validade cfe. chamado 18698 da Full
--- 25/03/2022 - Robert - Campo B1_P_BRT substituido por B1_PESBRU
+-- 25/03/2022 - Robert - Campo peso bruto substituido por B1_PESBRU
 --                     - Criado campo peso_liq
 --                     - Campos B1_VAPLLAS e B1_VAPLCAM devem ter dados (melhorias GLPI 11825)
+-- 07/04/2022 - Robert - Coluna 'peso_liq' deixa de ser lida do B1_PESO e passa a ser lida do B1_PESBRU.
 --
 
 -- Selecao de itens para a empresa 1 (logistica)
@@ -25,7 +34,6 @@ SELECT RTRIM(B1_COD) AS coditem,
        RTRIM(B1_DESC) AS descricao,
        '' AS referencia,
        RTRIM(B1_UM) AS um,
-       --B1_P_BRT AS peso,
        B1_PESBRU AS peso,
        1 AS lote_mult,
        CASE WHEN SB1.B1_PRVALID = 0 THEN 'N' ELSE 'S' END AS contr_validade,
@@ -45,7 +53,7 @@ SELECT RTRIM(B1_COD) AS coditem,
        END AS inspecao,
        1 AS empresa,  -- AX 01 = empresa 1
        SB1.B1_PRVALID as dias_validade,
-       B1_PESO AS peso_liq
+       B1_PESBRU AS peso_liq -- B1_PESO AS peso_liq
 FROM   SB1010 SB1
        LEFT JOIN SB5010 SB5
             ON  (
@@ -68,7 +76,7 @@ SELECT RTRIM(B1_COD) AS coditem,
        RTRIM(B1_DESC) AS descricao,
        '' AS referencia,
        RTRIM(B1_UM) AS um,
-       B1_P_BRT AS peso,
+       B1_PESBRU AS peso,
        1 AS lote_mult,
        CASE WHEN SB1.B1_PRVALID = 0 THEN 'N' ELSE 'S' END AS contr_validade,
        'N' AS contr_serie,
@@ -101,3 +109,5 @@ WHERE  SB1.D_E_L_E_T_ = ''
 */
 
 GO
+
+

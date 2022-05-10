@@ -1,16 +1,25 @@
+USE [MercanetPRD]
+GO
+
+/****** Object:  StoredProcedure [dbo].[MERCP_CONCORRENTE_INTEGRACOES]    Script Date: 10/05/2022 11:54:31 ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
+
+
 
 ALTER PROCEDURE [dbo].[MERCP_CONCORRENTE_INTEGRACOES] (@P_TIPO INT) AS
 
 BEGIN
 
--- Cria sinonimos para os caminhos/nomes das tabelas, de modo que possa ser usada a mesma
+-- Cria sononimos para os caminhos/nomes das tabelas, de modo que possa ser usada a mesma
 -- rotina de integracao, mas acessando o database correto cfe. cada ambiente.
 EXEC MERCP_CRIA_SINONIMOS_TABELAS;
+																	  
 
+	 
 
 DECLARE @VOBJETO       VARCHAR(100) SELECT @VOBJETO = 'MERCP_CONCORRENTE_INTEGRACOES';
 DECLARE @VDATA         DATETIME;
@@ -124,7 +133,8 @@ DECLARE @VB1_FILIAL   VARCHAR(50),  @VB1_COD      VARCHAR(50),  @VB1_DESC     VA
         @VB1_LOTVEN   FLOAT,        @VB1_OK       VARCHAR(50),  @VB1_USAFEFO  VARCHAR(50),  @VB1_UMOEC    FLOAT,        @VB1_UVLRC    FLOAT,
         @VB1_GCCUSTO  VARCHAR(50),  @VB1_CCCUSTO  VARCHAR(50),  @VB1_CLASSE   VARCHAR(50),  @VB1_PAUTFET  FLOAT,        @VB1_RETOPER  VARCHAR(50),
         @VB1_CRDEST   FLOAT,        @VB1_LITROS   FLOAT,        @VB1_VAMARCM  VARCHAR(6),   @VB1_CLINF    VARCHAR(6),   @VB1_CODLIN   VARCHAR(6),
-        @VB1_VAEANUN  VARCHAR(15),  @VB1_VADUNCX  VARCHAR(15),  @VB1_P_BRT    FLOAT,        @VB1_VAPLLAS  FLOAT,        @VB1_VAPLCAM  FLOAT,
+        --@VB1_VAEANUN  VARCHAR(15),  @VB1_VADUNCX  VARCHAR(15),  @VB1_P_BRT    FLOAT,        @VB1_VAPLLAS  FLOAT,        @VB1_VAPLCAM  FLOAT,
+		@VB1_VAEANUN  VARCHAR(15),  @VB1_VADUNCX  VARCHAR(15),  @VB1_VAPLLAS  FLOAT,        @VB1_VAPLCAM  FLOAT,
 		@VB1_QTDEMB   FLOAT;
 
 -- VARIAVEIS PARA CONDICAO PAGAMENTO (SE4)
@@ -449,7 +459,7 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---                                        NOTAS FISCAIS - DEVOLUCOES              35
 ---                                        NOTAS FISCAIS (VENDAS, BONIFICACOES E TRANSFERENCIAS) 37
 ---                                        PRODUTOS                                40
----                                        LISTAS DE PRE�OS (CAPA E ITEM)          41
+---                                        LISTAS DE PREÇOS (CAPA E ITEM)          41
 ---                                        TITULOS                                 50
 ---                                        FAMILIA DE PRODUTOS (LINHA DE PRODUTO)  8004
 ---                                        REPRESENTANTES                          8005
@@ -486,10 +496,11 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---           07/10/2020  ROBERT           TRATAMENTO PARA NOVO CAMPO E4_VAEXMER (DEIXAR A CONDICAO INATIVA QUANDO CONTIVER 'N' NESSE CAMPO)
 ---           16/04/2021  CLAUDIA		   INCLUIDO O CAMPO DE % MAXIMO DE DESCONTO DA0_PERMAX
 ---           20/04/2021  CLAUDIA		   INCLUIDO O CAMPO DE % MAXIMO DE DESCONTO DA0_PERMIN
----           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRAN�A. GLPI: 9633
----  1.00011  08/03/2022  JULIANO SOUZA    INCLUIDO REPRESENTANTE 2
+---           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRANÇA. GLPI: 9633
 ---           17/03/2022  ROBERT           VERSAO INICIAL USANDO SONONIMOS PARA NOMES DE TABELAS
----
+--            07/04/2022  ROBERT           REMOVIDOS ALGUNS COMENTARIOS E APLICADA EM BASE DE PRODUCAO
+--            10/05/2022  CLAUDIA          RETIRADO CAMPO B1_P_BRT. GLPI: 11822
+--
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 
 BEGIN TRY
@@ -922,7 +933,7 @@ END;
         SET @C_CLASCOM = CURSOR STATIC FOR
                 
             SELECT I.CC3_FILIAL, I.CC3_COD, I.CC3_DESC, I.D_E_L_E_T_, I.R_E_C_N_O_
-                FROM CC3 I
+                FROM INTEGRACAO_PROTHEUS_CC3 I
 
         OPEN @C_CIDADES
         FETCH NEXT FROM @C_CIDADES
@@ -1035,8 +1046,9 @@ END;
                      @VA1_TPISSRS = A1_TPISSRS, @VA1_CTARE   = A1_CTARE,    @VA1_RECFET  = A1_RECFET,  @VD_E_L_E_T_ = D_E_L_E_T_, @VR_E_C_N_O_ = R_E_C_N_O_,
                      @VA1_MSBLQL  = A1_MSBLQL,  @VA1_VACANAL = A1_VACANAL,  @VA1_SIMPNAC = A1_SIMPNAC, @VA1_OBSALI  = A1_OBSALI,  @VA1_CNAE    = A1_CNAE,
                      @VA1_VAREGE  = A1_VAREGE,  @VA1_VAOC    = A1_VAOC,     @VA1_VAPROMO = A1_VAPROMO, @VA1_CONTAT3 = A1_CONTAT3, @VA1_TELCOB  = A1_TELCOB,
-					 @VA1_VAEMLF  = A1_VAEMLF, @VA1_VABCOF   = A1_VABCOF,  @VA1_VAAGFIN = A1_VAAGFIN, @VA1_VACTAFN = A1_VACTAFN, @VA1_VACGCFI = A1_VACGCFI,
+					 @VA1_VAEMLF  = A1_VAEMLF, @VA1_VABCOF   = A1_VABCOF,   @VA1_VAAGFIN = A1_VAAGFIN, @VA1_VACTAFN = A1_VACTAFN, @VA1_VACGCFI = A1_VACGCFI,
 					 @VA1_VEND2   = A1_VEND2,  @VA1_TABELA2  = A1_TABELA2 
+														   
                FROM INTEGRACAO_PROTHEUS_SA1
                WHERE R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 
@@ -1057,6 +1069,7 @@ END;
                                            @VA1_ABATIMP, @VA1_TPISSRS, @VA1_CTARE,   @VA1_RECFET,  @VD_E_L_E_T_, @VR_E_C_N_O_, @VA1_MSBLQL,  @VA1_VACANAL, @VA1_SIMPNAC, @VA1_OBSALI,
                                            @VA1_CNAE,    @VA1_VAREGE,  @VA1_VAOC,    @VA1_VAPROMO, @VA1_CONTAT3, @VA1_TELCOB,  @VA1_VAEMLF,  @VA1_VABCOF,  @VA1_VAAGFIN, @VA1_VACTAFN,
 										   @VA1_VACGCFI, @VA1_VEND2,   @VA1_TABELA2
+
 
             END;
            ---------------------------
@@ -1145,10 +1158,13 @@ END;
                      @VB1_CLASSE    = B1_CLASSE,    @VB1_PAUTFET = B1_PAUTFET, @VB1_RETOPER = B1_RETOPER, @VB1_CRDEST  = B1_CRDEST,  @VB1_LITROS  = B1_LITROS,
 --Robert 26/07/19    @VB1_VAMARCM   = B1_VAMARCM,   @VB1_CLINF   = B1_CLINF,   @VB1_CODLIN  = B1_CODLIN,  @VB1_VAEANUN = B1_VAEANUN, @VB1_VADUNCX = B1_VADUNCX,
                      @VB1_VAMARCM   = B1_VAMARCM,   @VB1_CLINF   = B1_CLINF,   @VB1_CODLIN  = B1_CODLIN,  @VB1_VAEANUN = B5_2CODBAR, @VB1_VADUNCX = B1_CODBAR,
-                     @VB1_P_BRT     = B1_P_BRT,     @VB1_VAPLLAS = B1_VAPLLAS, @VB1_VAPLCAM = B1_VAPLCAM,
+                     --@VB1_P_BRT     = B1_PESBRU,     @VB1_VAPLLAS = B1_VAPLLAS, @VB1_VAPLCAM = B1_VAPLCAM,
+					 @VB1_VAPLLAS = B1_VAPLLAS, @VB1_VAPLCAM = B1_VAPLCAM,
 --Andre 28/04/20     
 					 @VB1_QTDEMB    = B1_QTDEMB
                 FROM INTEGRACAO_PROTHEUS_SB1 SB1, INTEGRACAO_PROTHEUS_SB5 SB5
+														  
+																								   
                WHERE SB1.R_E_C_N_O_ = @VR_E_C_N_O_CURSOR
 			     AND SB5.B5_FILIAL = SB1.B1_FILIAL AND SB5.B5_COD = SB1.B1_COD
 
@@ -1173,7 +1189,8 @@ END;
                                            @VB1_REQUIS,  @VB1_QTDACUM, @VB1_QTDINIC, @VB1_CNAE,    @VB1_FRETISS, @VB1_CALCFET, @VD_E_L_E_T_, @VR_E_C_N_O_, @VR_E_C_D_E_L_,
                                            @VB1_MSBLQL,  @VB1_AGREGCU, @VB1_QUADPRO, @VB1_EMAX,    @VB1_FRACPER, @VB1_INT_ICM, @VB1_SELO,    @VB1_LOTVEN,  @VB1_OK,     
                                            @VB1_USAFEFO, @VB1_UMOEC,   @VB1_UVLRC,   @VB1_GCCUSTO, @VB1_CCCUSTO, @VB1_CLASSE,  @VB1_PAUTFET, @VB1_RETOPER, @VB1_CRDEST,
-                                           @VB1_LITROS,  @VB1_VAMARCM, @VB1_CLINF,   @VB1_CODLIN,  @VB1_VAEANUN, @VB1_VADUNCX, @VB1_P_BRT,   @VB1_VAPLLAS, @VB1_VAPLCAM,
+                                           --@VB1_LITROS,  @VB1_VAMARCM, @VB1_CLINF,   @VB1_CODLIN,  @VB1_VAEANUN, @VB1_VADUNCX, @VB1_P_BRT,   @VB1_VAPLLAS, @VB1_VAPLCAM,
+										   @VB1_LITROS,  @VB1_VAMARCM, @VB1_CLINF,   @VB1_CODLIN,  @VB1_VAEANUN, @VB1_VADUNCX,  @VB1_VAPLLAS, @VB1_VAPLCAM,
 										   @VB1_QTDEMB
            END;
            ---------------------------
@@ -1255,7 +1272,7 @@ END;
 
            ---------------------------
            ---- 41 - LISTAS DE PRECOS
-           ----        Listas de Precos sempre carrega a capa (db_preco = DA0) e itens (db_preco_prod = DA1)
+           ----        Listas de Preços sempre carrega a capa (db_preco = DA0) e itens (db_preco_prod = DA1)
            ---------------------------
            IF @P_TIPO = 41
            BEGIN
@@ -1269,7 +1286,7 @@ END;
                EXEC [dbo].[MERCP_DA0010] 0, @VDA0_CODTAB,@VDA0_DESCRI, @VDA0_DATDE, @VDA0_HORADE,@VDA0_DATATE,@VDA0_HORATE,@VDA0_CONDPG,@VDA0_TPHORA,
                                @VDA0_ATIVO, @VDA0_FILIAL,@VD_E_L_E_T_, @VR_E_C_N_O_,@VR_E_C_D_E_L_,@VDA0_VAUF,@VDA0_VAESDI,@VDA0_PERMAX,@VDA0_PERMIN
 
-                --- Busca todos os itens da lista de precos que esta logada
+                --- Busca todos os itens da lista de precos que está logada
                 SET @C_LISTA_PROD = CURSOR STATIC FOR
                 
                         SELECT DA1_FILIAL   , DA1_ITEM     , DA1_CODTAB   , DA1_CODPRO   , DA1_GRUPO    , DA1_REFGRD   , DA1_PRCVEN   , DA1_VLRDES   
@@ -1342,7 +1359,7 @@ END;
                               @VC5_MENPAD , @VC5_OS     ,@VC5_SERIE  , @VC5_KITREP ,@VC5_TIPLIB ,@VC5_TXMOEDA,@VC5_DESCONT,@VC5_PEDEXP ,@VC5_TPCARGA,
                               @VC5_PDESCAB, @VC5_BLQ    ,@VC5_FORNISS, @VC5_CONTRA ,@VC5_VLR_FRT,@VD_E_L_E_T_,@VR_E_C_N_O_,@VR_E_C_D_E_L_, @VC5_VAPDMER
 
-                --- Busca todos os itens do pedido que esta logado
+                --- Busca todos os itens do pedido que está logado
                 SET @C_PEDIDO_PROD  = CURSOR STATIC FOR
                 
                        SELECT C6_FILIAL,      C6_ITEM,       C6_PRODUTO,    C6_DESCRI,     C6_UM,         C6_QTDVEN,      C6_PRCVEN,    C6_VALOR
@@ -1482,7 +1499,7 @@ END;
 
 
 
-                --- Busca todos os itens da nota que esta logada
+                --- Busca todos os itens da nota que está logada
                 SET @C_NOTA_PROD  = CURSOR STATIC FOR
                 
                        SELECT D2_FILIAL ,     D2_COD    ,    D2_UM     ,    D2_SEGUM  ,    D2_QUANT  ,    D2_PRCVEN ,     D2_TOTAL  ,   D2_VALIPI 
@@ -1636,7 +1653,7 @@ END;
                               @VF1_VALFET , @VF1_PLACA  ,@VD_E_L_E_T_,@VR_E_C_N_O_,@VR_E_C_D_E_L_
 
 
-                --- Busca todos os itens da nota de devolucao que esta logada
+                --- Busca todos os itens da nota de devolucao que está logada
                 SET @C_NOTA_DEV_PROD  = CURSOR STATIC FOR
                 
                        SELECT D1_FILIAL   , D1_ITEM     , D1_COD      , D1_UM       , D1_QUANT    , D1_VUNIT    , D1_TOTAL    , D1_LOCAL    
@@ -1912,7 +1929,7 @@ END;
 
 
   
-            --- Apos atualizar a informacao marca o registro como processado
+            --- Após atualizar a informacao marca o registro como processado
             UPDATE DB_INTERFACE_PROTHEUS
                SET STATUS = 'PRO'
                  , DATA_PROCESSADO = GETDATE()
@@ -1957,3 +1974,5 @@ END CATCH
 
 END
 GO
+
+
