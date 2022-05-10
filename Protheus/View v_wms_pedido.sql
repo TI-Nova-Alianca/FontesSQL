@@ -12,8 +12,12 @@ GO
 
 
 
+<<<<<<< HEAD
 
 ALTER VIEW [dbo].[v_wms_pedido]
+=======
+alter VIEW [dbo].[v_wms_pedido]
+>>>>>>> a1a013059ecb016d46421b805cf9a898acf7cb4e
 AS
 -- Cooperativa Vinicola Nova Alianca Ltda
 -- View para integracao com o FullWMS - solicitacoes de separacao de materiais

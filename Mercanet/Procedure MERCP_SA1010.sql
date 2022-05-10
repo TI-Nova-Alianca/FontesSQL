@@ -6,9 +6,6 @@ GO
 
 
 
-
-
-
 ALTER PROCEDURE [dbo].[MERCP_SA1010] (@VEVENTO      FLOAT,
                                       @VA1_FILIAL   VARCHAR(50),
                                       @VA1_COD      VARCHAR(50),
@@ -169,7 +166,10 @@ ALTER PROCEDURE [dbo].[MERCP_SA1010] (@VEVENTO      FLOAT,
 									  @VA1_VABCOF   VARCHAR(3),
 									  @VA1_VAAGFIN  VARCHAR(5),   
 									  @VA1_VACTAFN  VARCHAR(12),  
-									  @VA1_VACGCFI  VARCHAR(14)
+									  @VA1_VACGCFI  VARCHAR(14),
+									  @VA1_VEND2     VARCHAR(50),
+									  @VA1_TABELA2   VARCHAR(50)
+
                                      ) AS
 
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ ALTER PROCEDURE [dbo].[MERCP_SA1010] (@VEVENTO      FLOAT,
 ---                                        - CONSUMIDOR FINAL = TODOS CONSIMIDORES FINAL (A1_TIPO = F)
 ---                                        QUANDO NAO POSSUIR ENDERECO DE COBRANCA COPIAS AS INFORMACOES DO ENDERECO PRINCIPAL
 ---                                        PASSA A AVALIAR O CODIGO DO CLIENTE PARA DEFINIR SE O CLIENTES DEVE SER ATUALIZADO, POIS O CNPJ ESTA DUPLICADO NO PROTHEUS
----  1.00002  03/02/2016  ALENCAR          GRAVAR A CLIENTE_REPRES COM BASE NA TABELA ZFL010
+---  1.00002  03/02/2016  ALENCAR          GRAVAR A CLIENTE_REPRES COM BASE NA TABELA ZFL
 ---  1.00003  15/03/2016  ALENCAR          GRAVAR OS CAMPOS  DB_CLI_DATA_CADAS E DB_CLI_ALT_CORP
 ---                                        GRAVAR A CLASSIFICACAO FISCAL DO CLIENTE  DB_CLIC_CLASFIS   = @VA1_ZZCBU
 ---  1.00004  29/03/2016  CELENIO          AJUSTADO DB_CLI_RAMATIV PARA DESCONSIRAR OS ESPAÇOS EM BRANCO
@@ -214,6 +214,9 @@ ALTER PROCEDURE [dbo].[MERCP_SA1010] (@VEVENTO      FLOAT,
 ---  1.00021  23/05/2018  SERGIO LUCCHINI  IMPORTAR O CADASTRO DE PROMOTORES DE VENDA. CHAMADO 81267
 ---  1.00022  10/09/2018  SERGIO LUCCHINI  ALTERACAO NA BUSCA DO REPRESENTANTE. CHAMADO 84157
 ---  1.00023  18/06/2020  CLAUDIA LIONÇO   ALTERACAO NO A1_VAREGE. GLPI:8084
+---  1.00024  31/03/2022  JULIANO SOUZA    INCLUINDO REPRESENTANTE 2
+---           07/04/2022  ROBERT KOCH      REMOVIDOS ALGUNS COMENTARIOS E APLICADA EM AMBIENTE DE PRODUCAO.
+---
 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 BEGIN
@@ -223,6 +226,7 @@ DECLARE @VDATA               DATETIME;
 DECLARE @VCOD_ERRO           FLOAT;
 DECLARE @VERRO               VARCHAR(255);
 DECLARE @VREPRES             INT;
+DECLARE @VREPRES2            INT;
 DECLARE @VREPRESAUX          INT;
 DECLARE @VEMPRESAAUX         VARCHAR(3);
 DECLARE @VCLIENTEAUX         FLOAT;
@@ -259,6 +263,7 @@ SET @VA1_LOJA = LTRIM(RTRIM(@VA1_LOJA));
 --PRINT('CLIENTE: '+ CAST(CAST(@VA1_COD + @VA1_LOJA AS FLOAT) AS VARCHAR))
 --PRINT('CGC1: '+ CAST(@VA1_CGC AS VARCHAR))
 
+-- REPRES. 1 ---------------------------------
 IF ISNULL(LTRIM(RTRIM(@VA1_VEND)),'')  = '' OR
    ISNULL(LTRIM(RTRIM(@VA1_VEND)),'0') = '0'
 BEGIN
@@ -273,6 +278,24 @@ BEGIN
    IF @VCOD_ERRO > 0
    BEGIN
       SET @VREPRES = 0;
+   END
+END
+
+-- REPRES. 2 ---------------------------------
+IF ISNULL(LTRIM(RTRIM(@VA1_VEND2)),'')  = '' OR
+   ISNULL(LTRIM(RTRIM(@VA1_VEND2)),'0') = '0'
+BEGIN
+   SET @VREPRES2 = 0;
+END
+ELSE
+BEGIN
+   SELECT @VREPRES2 = DB_TBREP_CODIGO
+     FROM DB_TB_REPRES
+    WHERE DB_TBREP_CODORIG = @VA1_VEND2;
+   SET @VCOD_ERRO = @@ERROR;
+   IF @VCOD_ERRO > 0
+   BEGIN
+      SET @VREPRES2 = 0;
    END
 END
 
@@ -624,11 +647,7 @@ BEGIN
    BEGIN
 
       --PRINT('UPDATE: '+ CAST(CAST(@VA1_COD AS FLOAT) AS VARCHAR))
-	  --PRINT('SITUACAO: '+ RTRIM(@VA1_MSBLQL))
       --PRINT('ENDER COB: '+  ISNULL(SUBSTRING(RTRIM(@VA1_ENDCOB),1,40), SUBSTRING(RTRIM(@VA1_END),1,36))  )
-	  INSERT INTO dbo.VA_LOGS (DATAHORA, ORIGEM, TEXTO)
-	  VALUES (GETDATE(), 'UPDATE CLIENTES - SA1', 'CLIENTE:'+ @VA1_COD +'  SITUACAO:'+ @VA1_MSBLQL)
-
       UPDATE DB_CLIENTE
          SET DB_CLI_NOME        = SUBSTRING(RTRIM(@VA1_NOME),1,40),
              DB_CLI_CGCMF       = RTRIM(LTRIM(@VA1_CGC)),
@@ -899,6 +918,85 @@ BEGIN
       END;
 
    END
+   --FIM REPRES. 1
+
+   IF ISNULL(LTRIM(RTRIM(@VA1_VEND2)), '')  <> '' AND
+      ISNULL(LTRIM(RTRIM(@VA1_VEND2)), '0') <> '0'
+   BEGIN
+
+      SET @VINSERE = 0;
+
+      SELECT @VINSERE = 1
+        FROM DB_CLIENTE_REPRES
+       WHERE DB_CLIR_CLIENTE = @VDB_CLI_CODIGO
+         AND DB_CLIR_REPRES  = @VREPRES2
+         AND DB_CLIR_EMPRESA = @VCLIR_EMPRESA;
+      SET @VCOD_ERRO = @@ERROR;
+      IF @VCOD_ERRO > 0
+      BEGIN
+         SET @VINSERE = 0;
+      END
+
+      IF @VINSERE = 0
+      BEGIN
+
+         INSERT INTO DB_CLIENTE_REPRES
+           (
+            DB_CLIR_CLIENTE,
+            DB_CLIR_REPRES,
+            DB_CLIR_EMPRESA,
+            DB_CLIR_TRANSP,
+            DB_CLIR_TIPO_FRETE,
+            DB_CLIR_LPRECO,
+            DB_CLIR_DESCTO,
+            DB_CLIR_PRAZO_MAX,
+            DB_CLIR_SITUACAO,
+            DB_CLIR_OPERACAO,
+            DB_CLIR_COND_PGTO
+           )
+         VALUES
+           (
+            @VDB_CLI_CODIGO,
+            @VREPRES2,
+            @VCLIR_EMPRESA,
+            CAST(REPLACE(@VA1_TRANSP,' ','') AS INT),
+            CASE RTRIM(@VA1_TPFRET) WHEN 'F' THEN 3 ELSE 1 END,
+            RTRIM(@VA1_TABELA2),
+            0,
+            60,
+            0,
+            1,
+            LTRIM(RTRIM(@VA1_COND))
+           );
+         SET @VCOD_ERRO = @@ERROR;
+         IF @VCOD_ERRO > 0
+         BEGIN
+            SET @VERRO = '6 - ERRO INSERT DB_CLIENTE_REPRES 2:' + @VA1_COD + ' - ERRO BANCO: ' + CAST(@VCOD_ERRO AS VARCHAR);
+         END
+
+      END
+      ELSE
+      BEGIN
+
+         UPDATE DB_CLIENTE_REPRES
+            SET DB_CLIR_TRANSP     = CAST(REPLACE(@VA1_TRANSP,' ','') AS INT),
+                DB_CLIR_LPRECO     = RTRIM(@VA1_TABELA2),
+                DB_CLIR_TIPO_FRETE = CASE RTRIM(@VA1_TPFRET) WHEN 'F' THEN 3 ELSE 1 END,
+                DB_CLIR_SITUACAO   = 0,
+                DB_CLIR_COND_PGTO  = LTRIM(RTRIM(@VA1_COND))
+          WHERE DB_CLIR_CLIENTE = @VDB_CLI_CODIGO
+            AND DB_CLIR_REPRES  = @VREPRES2
+            AND DB_CLIR_EMPRESA = @VCLIR_EMPRESA;
+         SET @VCOD_ERRO = @@ERROR;
+         IF @VCOD_ERRO > 0
+         BEGIN
+            SET @VERRO = '7 - ERRO UPDATE DB_CLIENTE_REPRES 2:' + @VA1_COD + ' - ERRO BANCO: ' + CAST(@VCOD_ERRO AS VARCHAR);
+         END
+
+      END;
+
+   END
+   --FIM REPRES. 2
 
    -- INSERE O PROMOTOR COMO MAIS UM REPRES DO CLIENTE
    SET @VINSERE = 0;
@@ -1268,14 +1366,14 @@ END
 /**************
             ---------------------------------------------
             --- ATUALIZA A REDE DE CLIENTES
-            ---    CADASTRO DE REDES: TABELA ZGE010
+            ---    CADASTRO DE REDES: TABELA ZGE
             ---    CAMPO REDE NO CADASTRO DO CLIENTE: A1_ZZBAND
             ---------------------------------------------
             IF ISNULL(@VA1_ZZBAND, '') <> '' BEGIN
 
                 --- BUSCA A DESCRICAO DA REDE NO CADASTRO DO PROTHEUS
                 SELECT @VZGE_NOME = ZGE_NOME 
-                  FROM P1180_PRODUCAO..ZGE010 
+                  FROM P1180_PRODUCAO..ZGE 
                  WHERE ZGE_COD = @VA1_ZZBAND
 
                 --- VERIFICA SE A REDE JA EXISTE

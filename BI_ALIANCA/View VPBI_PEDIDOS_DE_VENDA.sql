@@ -5,6 +5,15 @@ GO
 
 create VIEW [dbo].[VPBI_PEDIDOS_DE_VENDA]
 AS
+
+-- Cooperativa Vinicola Nova Alianca Ltda
+-- View para buscar dados de pedidos de venda, para uso no PowerBI
+-- Autor: Robert Koch
+-- Data:  03/2022
+-- Historico de alteracoes:
+-- 21/04/2022 - Robert - Ampliado periodo para buscar pedidos a partir de 2017.
+--
+
 SELECT
 	C6_FILIAL
    ,C6_NUM
@@ -26,5 +35,5 @@ WHERE SC6.D_E_L_E_T_ = ''
 AND SC5.D_E_L_E_T_ = ''
 AND SC5.C5_FILIAL = SC6.C6_FILIAL
 AND SC5.C5_NUM = SC6.C6_NUM
-AND SC6.C6_EMISS >= '20220101'  -- VERIFICAR DEPOIS SE QUEREMOS ALGUMA DATA MAIS ANTIGA
+AND SC6.C6_EMISS >= '20170101'
 GO

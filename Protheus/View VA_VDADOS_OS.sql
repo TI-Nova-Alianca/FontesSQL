@@ -15,7 +15,11 @@ ALTER VIEW [dbo].[VA_VDADOS_OS] AS
 	-- Data:  01/12/2021
 	-- Historico de alteracoes:
 	-- 06/12/2021 - Robert - Criadas colunas MANUTENTOR1, MANUTENTOR2, 3 e 4.
-	-- 22/02/2022 - Robert - Adicionados alguma comentarios sobre as colunas
+	-- 22/02/2022 - Robert - Adicionados alguns comentarios sobre as colunas
+	-- 08/04/2022 - Robert - Melhorada a leitura de manutentores por OS:
+	--                         - Usa LEFT JOIN entre SLT e ST1
+	--                         - Desconsidera TL_REPFIM = 'S' (para trazer tambem os menutentores previstos para a OS)
+	--                     - Adicionados mais manutentores (ate 7)
 	--
 
 -- MONTA UMA CTE CONTENDO OS NOMES DOS PRINCIPAIS MANUTENTORES DE CADA O.S. EM COLUNAS,
@@ -27,6 +31,9 @@ WITH MANUTENTORES_POR_OS AS (
 		, max (CASE WHEN SEQ = 2 THEN T1_NOME ELSE '' END) AS MANUTENTOR2
 		, max (CASE WHEN SEQ = 3 THEN T1_NOME ELSE '' END) AS MANUTENTOR3
 		, max (CASE WHEN SEQ = 4 THEN T1_NOME ELSE '' END) AS MANUTENTOR4
+		, max (CASE WHEN SEQ = 5 THEN T1_NOME ELSE '' END) AS MANUTENTOR5
+		, max (CASE WHEN SEQ = 6 THEN T1_NOME ELSE '' END) AS MANUTENTOR6
+		, max (CASE WHEN SEQ = 7 THEN T1_NOME ELSE '' END) AS MANUTENTOR7
 	FROM (SELECT TL_FILIAL
 				, TL_ORDEM
 				, ROW_NUMBER () OVER(PARTITION BY TL_FILIAL, TL_ORDEM ORDER BY SUM (TL_QUANTID) DESC) AS SEQ
@@ -34,10 +41,13 @@ WITH MANUTENTORES_POR_OS AS (
 				, ST1.T1_NOME
 				, SUM (TL_QUANTID) AS HORAS
 			FROM STL010 STL
-				, ST1010 ST1
-			WHERE STL.D_E_L_E_T_ = ''
+				LEFT JOIN ST1010 ST1
+					ON (ST1.D_E_L_E_T_ = ''
+					AND ST1.T1_FILIAL = '  '
+					AND ST1.T1_CODFUNC = STL.TL_CODIGO)
+				WHERE STL.D_E_L_E_T_ = ''
 				AND STL.TL_TIPOREG = 'M' -- MAO DE OBRA
-				AND STL.TL_REPFIM = 'S'  -- REALIZADO
+				--AND STL.TL_REPFIM = 'S'  -- REALIZADO
 				--AND TL_ORDEM in ('023203', '022422', '022162')
 				AND ST1.D_E_L_E_T_ = ''
 				AND ST1.T1_FILIAL = '  '
@@ -101,6 +111,9 @@ SELECT
 	, ISNULL (RTRIM (M.MANUTENTOR2), '') AS MANUTENTOR2
 	, ISNULL (RTRIM (M.MANUTENTOR3), '') AS MANUTENTOR3
 	, ISNULL (RTRIM (M.MANUTENTOR4), '') AS MANUTENTOR4
+	, ISNULL (RTRIM (M.MANUTENTOR5), '') AS MANUTENTOR5
+	, ISNULL (RTRIM (M.MANUTENTOR6), '') AS MANUTENTOR6
+	, ISNULL (RTRIM (M.MANUTENTOR7), '') AS MANUTENTOR7
 FROM C
 	LEFT JOIN MANUTENTORES_POR_OS M ON (M.TL_FILIAL = C.FILIAL AND M.TL_ORDEM = C.ORDEM)
 

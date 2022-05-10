@@ -9,7 +9,10 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> a1a013059ecb016d46421b805cf9a898acf7cb4e
 ALTER PROCEDURE [dbo].[MERCP_CONCORRENTE_INTEGRACOES] (@P_TIPO INT) AS
 
 BEGIN
@@ -499,7 +502,10 @@ DECLARE @VCC3_FILIAL  VARCHAR(20),  @VCC3_COD     VARCHAR(15),  @VCC3_DESC VARCH
 ---           20/06/2021  CLAUDIA          INCLUIDOS CAMPOS DE COBRANÇA. GLPI: 9633
 ---           17/03/2022  ROBERT           VERSAO INICIAL USANDO SONONIMOS PARA NOMES DE TABELAS
 --            07/04/2022  ROBERT           REMOVIDOS ALGUNS COMENTARIOS E APLICADA EM BASE DE PRODUCAO
+<<<<<<< HEAD
 --            10/05/2022  CLAUDIA          RETIRADO CAMPO B1_P_BRT. GLPI: 11822
+=======
+>>>>>>> a1a013059ecb016d46421b805cf9a898acf7cb4e
 --
 -----------------------------------------------------------------------------------------------------------------------------------------------------
 

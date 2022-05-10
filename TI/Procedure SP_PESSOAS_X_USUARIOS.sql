@@ -10,6 +10,7 @@ GO
 -- Historico de alteracoes:
 -- 04/05/2021 - Daiana - Passa a gerar saida em HTML para melhor visualizacao no NaWeb
 -- 05/01/2022 - Robert - Passa a buscar tambem os grupos da tabela ZZU.
+-- 22/04/2022 - Robert - Acessos do NaWeb passam a vir com os perfis _ funcionalidades abertas.
 --
 
 -- Exemplo de uso:
@@ -295,27 +296,62 @@ BEGIN
 				DROP TABLE #PROTHEUS_GRUPOS_DO_USUARIO_ZZU
 
 			END
-			SET @RET += '</pre>'
+			SET @RET += '</pre>'  -- Final do Protheus
 
 
 
 			-- Abre um paragrafo no HTML de retorno para mostrar dados do NaWeb
-			SET @RET += '<p><br><strong>NaWeb:</strong></p>'
+			SET @RET += '<p><br><strong>NaWeb</strong></p>'
 			SET @RET += '<pre style="padding-left: 40px;">'
 			IF (@NAWEB_USER = '')
 			BEGIN
-				SET @RET += 'Nada consta</br>'
+				SET @RET += 'Nada consta. Ao criar novo usuario, informar [' + FORMAT (@META_PESSOA, 'G') + '] no campo Codigo da Pessoa.' + '</br>'
 			END
 			ELSE
 			BEGIN
 				SET @RET += 'ID......: ' + @NAWEB_ID + '</br>'
 				SET @RET += 'Username: ' + @NAWEB_USER + ' </br>'
 				SET @RET += 'Situacao: ' + CASE WHEN @AD_ENABLED != 'S' THEN ' bloqueado ' ELSE ' ativo ' END + ' (cfe. Active Directory)</br>'
-				SET @RET += 'Perfis..: ' + @NAWEB_PERFIS + ' </br>'
 			END
-			SET @RET += '</pre>'
 
-			-- LINHA PARA SEPARAR OS NOMES ENCONTRADOS
+			-- Cria tabela temporaria de perfis x funcionalidades deste usuario no NaWeb,
+			-- jah com um campo em formato para ser exportado em html.
+			;with c as (
+			select row_number () over (order by v.SecRoleId, v.SecFunctionalityKey) as registro
+				, row_number () over (partition by v.SecRoleId order by v.SecFunctionalityKey) as seq_funcionalidade
+				, v.SecRoleId, v.SecFunctionalityKey, v.SecRoleDescription, v.SecFunctionalityDescription
+			from LKSRV_NAWEB.naweb.dbo.SecUserRole sur,
+				LKSRV_NAWEB.naweb.dbo.VA_VPERFIS_X_FUNCIONALIDADES v
+			where sur.SecUserId = @NAWEB_ID
+			and v.SecRoleId = sur.SecRoleId
+			
+			)
+			select *
+			, case when seq_funcionalidade = 1
+				then
+					'    Perfil ' + cast (SecRoleId as varchar (max)) + ' - ' + SecRoleDescription + '<br>'
+				else ''
+				end
+				+ '       ' + SecFunctionalityKey + ' - ' + SecFunctionalityDescription + '<br>'
+				as htm
+			into #NaWeb_perfis_do_usuario
+			from c
+			order by SecRoleId, SecFunctionalityKey
+
+			-- Percorre a tabela temporaria e acrescenta linhas ´a string de retorno.
+			WHILE EXISTS (SELECT TOP 1 NULL FROM #NaWeb_perfis_do_usuario)
+			BEGIN
+				SET @RET += (SELECT TOP 1 htm from #NaWeb_perfis_do_usuario)
+
+				-- Remove o registro processado da tabela temporaria
+				DELETE #NaWeb_perfis_do_usuario WHERE registro = (SELECT MIN (registro) FROM #NaWeb_perfis_do_usuario)
+			END
+			DROP TABLE #NaWeb_perfis_do_usuario
+
+			SET @RET += '</pre>'  -- Final do NaWeb
+
+
+			-- LINHA PARA SEPARAR OS NOMES ENCONTRADOS (PODE ENCONTRAR MAIS DE UMA PESSOA COM NOMES PARECIDOS)
 			SET @RET += '<p><br><br><strong>========================================================================</strong></p>'
 
 

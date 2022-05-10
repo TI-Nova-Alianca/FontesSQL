@@ -108,3 +108,19 @@ AND ST9.T9_CODBEM = STP.TP_CODBEM
 ORDER BY STP.TP_CODBEM , STP.TP_DTLEITU
 
 --SELECT * FROM SX3010 WHERE X3_CAMPO IN ('TP_POSCONT','TP_ACUMCON', 'TP_DTLEITU','TP_VARDIA','T9_VARDIA','TP_USULEI')
+
+/*
+Solicitações de outros setores para a manutenção (e-mail Caio 21/02/2022)
+Produção
+Relatório que mostre as ordem de serviço aberta(em andamento e aguardando tratamento)
+e fechadas. Consiga filtrar por OS, pelo solicitante.
+
+Plano preventiva dos equipamentos exibindo a periodicidade(quinzenal, semestral e anual) com indicador para avisar com antecedência.
+
+PCP
+Primeiramente precisamos saber se as linha estão ativas ou se tem algum equipamento da linha parado e qual, precisamos visualizar se a manutenção está planejando paradas programadas e qual o tempo estimado de liberação e quando ocorrerem manutenções corretiva uma estimativa de liberação da linha, nas paradas programadas precisa de uma calendário para cada linha constando qual máquina da linha estará em manutenção com datas e horários em que o equipamento estará indisponível, isto se aplica também para a xaroparia, vinícola e formulação.
+
+Meio ambiente
+Relatório das O.S abertas, em andamento e concluídas, onde aponte a descrição da O.S e o que o trabalho que foi realizado;
+Plano de manutenção dos equipamentos da ETE, ETA e Central de Resíduos (sopradores, bombas, dessaguadora, prensa, empilhadeira e etc.).
+*/
