@@ -7,6 +7,7 @@
 -- Historico de alteracoes:
 -- 12/04/2022 - Robert - Criados indice por saida_id na tabela tb_wms_pedidos (GLPI 11905)
 -- 21/04/2022 - Robert - Criado indice na tabela tb_wms_movimentacoes
+-- 09/05/2022 - Robert - Criado indice tb_wms_lotes_item_lote
 --
 
 
@@ -434,7 +435,8 @@ CREATE NONCLUSTERED INDEX VA_AUX_MESES_SANOMES ON VA_AUX_MESES (SANOMES);
 -- CREATE NONCLUSTERED INDEX tb_wms_entrada_entrada_id ON tb_wms_entrada (entrada_id)
 
 -- Cria indices para melhorar leitura da tabela tb_wms_lotes (integracao com Protheus)
--- CREATE NONCLUSTERED INDEX tb_wms_lotes_doc_item ON tb_wms_lotes (documento_id, cod_item)
+-- CREATE NONCLUSTERED INDEX tb_wms_lotes_doc_item  ON tb_wms_lotes (documento_id, cod_item)
+-- CREATE NONCLUSTERED INDEX tb_wms_lotes_item_lote ON tb_wms_lotes (cod_item, lote)
 
 -- Cria indices para melhorar leitura da tabela tb_wms_pedidos, usada pela view v_wms_pedido (integracao com Protheus)
 -- CREATE NONCLUSTERED INDEX tb_wms_pedidos_saida_id ON tb_wms_pedidos (saida_id)
