@@ -15,6 +15,7 @@ AS
 -- 17/09/2015 - Robert - View VA_NOTAS_SAFRA renomeada para VA_VNOTAS_SAFRA
 -- 22/11/2018 - Robert - Incluida coluna CLAS_ABD
 -- 18/06/2020 - Robert - Incluidas colunas SIST_CONDUCAO E GRUPO_PAGTO
+-- 25/11/2021 - Robert - Criada coluna VALOR_PREMIO (compl.2020 foi pago em forma de premiacao) GLPI 9897
 --
 
 -- GERA UMA CTE COM OS DADOS DO DOC E TOTAIS DE QUANTIDADE E VALOR, PARA POSTERIOR
