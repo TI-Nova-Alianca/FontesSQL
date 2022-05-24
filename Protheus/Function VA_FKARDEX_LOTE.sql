@@ -11,6 +11,7 @@ GO
 -- 17/05/2018 - Robert - Acrescentada coluna de SEQUENCIA para diferenciar casos de ter mesmo NUMSEQ (requisicao de varios lotes numa mesma OP, por exemplo)
 -- 14/02/2022 - Robert - Ajustada descricao do mov.de transformacao (palavra DE/EM cfe. fosse entrada ou saida).
 -- 13/05/2022 - Robert - Incluidas diversas colunas para poder usar esta funcao na montagem da arvore de rastreabilidade no Protheus (GLPI 11980)
+-- 23/05/2022 - Robert - Incluida coluna LOTE_FILIAL_ORIGEM (GLPI 11980)
 --
 
 ALTER FUNCTION [dbo].[VA_FKARDEX_LOTE]
@@ -65,6 +66,7 @@ AS
 			, '' AS TIPONF
 			, '' AS ITEMNF
 			, '' AS TABELA_ORIGEM
+			, '' AS LOTE_FILIAL_ORIGEM
 
 		UNION ALL
 
@@ -140,6 +142,31 @@ AS
 			, D1_TIPO AS TIPONF
 			, D1_ITEM AS ITEMNF
 			, 'SD1' AS TABELA_ORIGEM
+			, CASE WHEN D1_TIPO IN ('B', 'D') AND A1_FILTRF != ''
+				THEN (SELECT TOP 1 D2_LOTECTL
+						FROM SD2010 SD2
+						WHERE SD2.D_E_L_E_T_ = ''
+						AND SD2.D2_FILIAL = SA1.A1_FILTRF
+						AND SD2.D2_DOC = SD1.D1_DOC
+						AND SD2.D2_SERIE = SD1.D1_SERIE
+						AND SD2.D2_COD = SD1.D1_COD
+						AND SD2.D2_QUANT = SD1.D1_QUANT
+						ORDER BY abs (CAST (D2_ITEM AS INT) - CAST (D1_ITEM AS INT))
+					)
+				ELSE CASE WHEN D1_TIPO NOT IN ('B', 'D') AND A2_FILTRF != ''
+						THEN (SELECT TOP 1 D2_LOTECTL
+								FROM SD2010 SD2
+								WHERE SD2.D_E_L_E_T_ = ''
+								AND SD2.D2_FILIAL = SA2.A2_FILTRF
+								AND SD2.D2_DOC = SD1.D1_DOC
+								AND SD2.D2_SERIE = SD1.D1_SERIE
+								AND SD2.D2_COD = SD1.D1_COD
+								AND SD2.D2_QUANT = SD1.D1_QUANT
+								ORDER BY abs (CAST (D2_ITEM AS INT) - CAST (D1_ITEM AS INT))
+							)
+						ELSE ''
+						END
+				END AS LOTE_FILIAL_ORIGEM
 		FROM   SF4010 SF4,
 				SF1010 SF1,
 				SD1010 SD1
@@ -313,6 +340,8 @@ AS
 			, '' AS TIPONF
 			, '' AS ITEMNF
 			, 'SD3' AS TABELA_ORIGEM
+			, '' AS LOTE_FILIAL_ORIGEM
+
 		FROM SD3010 SD3
 		LEFT JOIN SD3010 CONTRAPARTIDA -- ORIGEM/DESTINO, QUANDO FOR TRANSFERENCIA
 		ON (
@@ -412,6 +441,8 @@ AS
 			, D2_TIPO AS TIPONF
 			, D2_ITEM AS ITEMNF
 			, 'SD2' AS TABELA_ORIGEM
+			, '' AS LOTE_FILIAL_ORIGEM
+
 		FROM   SF4010 SF4,
 				SF2010 SF2,
 				SD2010 SD2
@@ -482,6 +513,7 @@ SELECT TOP 100 PERCENT
 		, C.TIPONF
 		, C.ITEMNF
 		, C.TABELA_ORIGEM
+		, C.LOTE_FILIAL_ORIGEM
 	FROM   C
 		-- FAZ UM JOIN COM A PROPRIA TABELA PARA COMPOR O SALDO
 		LEFT JOIN C AS C2
@@ -525,6 +557,7 @@ SELECT TOP 100 PERCENT
 		, C.TIPONF
 		, C.ITEMNF
 		, C.TABELA_ORIGEM
+		, C.LOTE_FILIAL_ORIGEM
 	ORDER BY C.TIPO_REG
 		, C.DATA
 		, C.NUMSEQ
