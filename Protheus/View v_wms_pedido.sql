@@ -1,6 +1,3 @@
-USE [protheus]
-GO
-
 /****** Object:  View [dbo].[v_wms_pedido]    Script Date: 10/05/2022 11:43:42 ******/
 SET ANSI_NULLS ON
 GO
@@ -26,6 +23,8 @@ AS
 -- 11/04/2022 - Robert  - Verificava se o item constava na view v_wms_item (muito lento). Criadas aqui validacoes equivalentes (GLPI 11905)
 --                      - Removida leitura do AX 02 e 07 (jah encontrava-se comentariada)
 --                      - Removidas tabelas SC5 e SC6 (estavam sem utilizacao)
+-- 09/06/2022 - Robert  - Removidas algumas linhas comentariadas
+--                      - Testes com nrreserva e pedido_id (desfeitos apos os testes)
 --
 
 WITH C
@@ -56,16 +55,13 @@ SELECT
 	   ,SUM(C9_QTDLIB) AS qtde
 	   ,'' AS descr_compl
 	   ,'' as tipo_pedido
-	   --,CASE WHEN SC9.C9_LOCAL IN ('01') THEN '1' ELSE CASE WHEN SC9.C9_LOCAL IN ('02', '07') THEN '2' ELSE '' END END AS empresa
 	   ,'1' AS empresa
 	   ,1 AS cd
 	   ,DAK_COD AS num_carga
 	FROM DAK010 DAK
 		,DAI010 DAI
 		,SC9010 SC9
-	--	,SC6010 SC6
 		,SB1010 SB1
-	--	,SC5010 SC5
 	WHERE DAK.D_E_L_E_T_ = ''
 	AND DAK.DAK_FILIAL = '01'
 	AND DAK.DAK_FEZNF  = '2'
@@ -79,14 +75,6 @@ SELECT
 	AND SC9.C9_PEDIDO  = DAI.DAI_PEDIDO
 	AND SC9.C9_LOCAL   = '01'
 	AND SC9.C9_NFISCAL = ''
---	AND SC9.C9_QTDLIB  > 0
---	AND SC5.D_E_L_E_T_ = ''
---	AND SC5.C5_FILIAL = C9_FILIAL
---	AND SC5.C5_NUM = SC9.C9_PEDIDO
---	AND SC6.D_E_L_E_T_ = ''
---	AND SC6.C6_FILIAL = SC9.C9_FILIAL
---	AND SC6.C6_NUM = SC9.C9_PEDIDO
---	AND SC6.C6_ITEM = SC9.C9_ITEM
 	AND SB1.D_E_L_E_T_ = ''   -- Procura manter mesmos criterios da view v_wms_item
 	AND SB1.B1_FILIAL = '  '  -- Procura manter mesmos criterios da view v_wms_item
 	AND SB1.B1_VAFULLW = 'S'  -- Procura manter mesmos criterios da view v_wms_item
@@ -156,13 +144,6 @@ WHERE NOT EXISTS (SELECT
 		*
 	FROM tb_wms_pedidos T
 	WHERE T.saida_id = C.saida_id)
-/*
--- Se o item nao foi enviado para o Full, nao adianta mostrar na view.
-AND EXISTS (SELECT
-		*
-	FROM v_wms_item I
-	WHERE I.coditem = C.coditem)
-*/
 GO
 
 
