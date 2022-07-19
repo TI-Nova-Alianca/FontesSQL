@@ -3,12 +3,9 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
-
 -- Cooperativa Vinicola Nova Alianca Ltda
 -- View para buscar movimentacao de notas de produtos a granel.
--- Visa auxiliar na conferência de guias de livre trânsito e Sisdeclara.
+-- Visa auxiliar na conferencia de guias de livre transito e Sisdeclara.
 -- Autor: Robert Koch
 -- Data:  03/03/2015
 -- Historico de alteracoes:
@@ -17,7 +14,9 @@ GO
 -- 17/09/2020 - Robert  - Coluna DATA renomeada para DT_MOVTO
 -- 28/12/2021 - Claudia - Incluidas colunas de placa e CTE
 -- 03/12/2022 - Claudia - Ajustada a busca da placa
+-- 19/07/2022 - Robert  - Usar TOP1 na leitura do ZZT para NF de entrada
 --
+
 ALTER VIEW [dbo].[VA_VMOVTO_GRANEL] AS
 
 SELECT
@@ -64,7 +63,7 @@ SELECT
 	, '')
 
 	AS NOME_TRANSP
-   ,(SELECT
+   ,(SELECT TOP 1  -- usa TOP1 por que jah tive casos do pessoal a mesma chave em 2 tickets
 			ZZT_PLACA
 		FROM ZZT010
 		WHERE D_E_L_E_T_ = ''
