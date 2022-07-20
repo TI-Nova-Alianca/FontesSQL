@@ -15,6 +15,8 @@ GO
 -- 11/08/2019 - Robert - Incluida colun AMBIENTE.
 -- 21/05/2021 - Robert - Incluida coluna ORIGEM.
 -- 27/05/2021 - Daiana - incluida coluna SZNRECNO.
+-- 20/07/2022 - Robert - Incluidas colunas DIAS_VALIDADE e CHAVE_NFE (GLPI 12336)
+--
 
 ALTER VIEW [dbo].[VA_VEVENTOS] AS
 
@@ -54,6 +56,8 @@ SELECT
 	SZN.ZN_CHAVE AS CHAVE,
 	SZN.ZN_ORIGEM AS ORIGEM,
 	SZN.R_E_C_N_O_ AS SZNRECNO
+	,SZN.ZN_DIASVLD AS DIAS_VALIDADE
+	,SZN.ZN_CHVNFE AS CHAVE_NFE
 FROM SZN010 SZN
 WHERE SZN.D_E_L_E_T_ = '' 
 
