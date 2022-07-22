@@ -1,6 +1,6 @@
 
 -- Pesquisa por determinado nome de objeto no banco de dados
-declare @nome varchar (max) = 'A2_VAFUNC'
+declare @nome varchar (max) = 'ZZX_DPCC'
 
 -- Define em qual banco de dados deve ser feita a pesquisa
 use protheus
