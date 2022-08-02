@@ -16,6 +16,7 @@ GO
 -- 21/05/2021 - Robert - Incluida coluna ORIGEM.
 -- 27/05/2021 - Daiana - incluida coluna SZNRECNO.
 -- 20/07/2022 - Robert - Incluidas colunas DIAS_VALIDADE e CHAVE_NFE (GLPI 12336)
+-- 01/08/2022 - Robert - Incluida coluna MOT_PRORROG_TIT
 --
 
 ALTER VIEW [dbo].[VA_VEVENTOS] AS
@@ -58,9 +59,8 @@ SELECT
 	SZN.R_E_C_N_O_ AS SZNRECNO
 	,SZN.ZN_DIASVLD AS DIAS_VALIDADE
 	,SZN.ZN_CHVNFE AS CHAVE_NFE
+	,SZN.ZN_MOTPROR AS MOT_PRORROG_TIT
 FROM SZN010 SZN
 WHERE SZN.D_E_L_E_T_ = '' 
-
-
 
 GO
