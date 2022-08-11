@@ -79,7 +79,7 @@ BEGIN
 	END
 
 	-- SE ENCONTROU MUITAS PESSOAS, RETORNA AVISO DE ERRO.
-	ELSE IF (@PESSOAS_ENCONTRADAS > 6)
+	ELSE IF (@PESSOAS_ENCONTRADAS > 1)
 	BEGIN
 		SET @RET += '<p><strong>FORAM ENCONTRADAS MUITAS (' + CAST (@PESSOAS_ENCONTRADAS AS NVARCHAR) + ') PESSOAS! ESPECIFIQUE UM FILTRO MELHOR.</strong></p>'
 	
@@ -172,7 +172,7 @@ BEGIN
 			SET @RET += '<pre style="padding-left: 40px;">'
 			IF (@PROTHEUS_USER = '')
 			BEGIN
-				SET @RET += 'Nada consta. Ao criar novo usuario, informar [' + @Cargo_para_Protheus + '] no campo CARGO do configurador.' + '</br>'
+				SET @RET += 'Nada consta. Ao criar novo usuario, informar "' + @Cargo_para_Protheus + '" no campo CARGO do configurador.' + '</br>'
 			END
 			ELSE
 			BEGIN
