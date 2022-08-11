@@ -57,7 +57,7 @@ GO
 -- RESTORE LOG [MercanetHML] FROM DISK = N'n:\MercanetPRD\MercanetPRD_Log 30-09-2021 02-00.trn' WITH FILE = 1, NORECOVERY
 
 -- monitora processo (abrir em janela separada)
-select percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
+select DB_NAME (database_id) as banco, percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
 
 
 -- Ajusta seguranca e acessos.

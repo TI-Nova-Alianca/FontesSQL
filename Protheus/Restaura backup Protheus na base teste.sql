@@ -12,7 +12,7 @@ GO
 
 /*
 -- Verifica quem esta conectado e possivelmente impedindo o restore.
-use protheus_teste
+use protheus_R33
 SELECT dec.client_net_address ,
 des.program_name ,
 des.host_name ,
@@ -60,32 +60,32 @@ declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 12-30 02-01-202
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017
 use master;
-RESTORE DATABASE [protheus_teste]
+RESTORE DATABASE [protheus_R33]
 FROM DISK = @nome_arq_bkp
 WITH FILE = 1,
-MOVE N'protheus' TO N'd:\Dados_SQL\protheus_teste.mdf',
-MOVE N'protheus_log' TO N'd:\Dados_SQL\protheus_teste_log.ldf',
+MOVE N'protheus' TO N'd:\Dados_SQL\protheus_R33.mdf',
+MOVE N'protheus_log' TO N'd:\Dados_SQL\protheus_R33_log.ldf',
 NOUNLOAD, REPLACE, STATS = 10
 GO
 
 
 -- monitora processo (abrir em janela separada)
-select percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
+select DB_NAME (database_id) as banco, percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
 
 
 -- Ajusta seguranca e acessos. Como a base quente encontra-se no SQL2005 e a teste no SQL2016, parece que
--- os usu�rios que vem junto no backup, apesar de terem nomes j� existentes no SQL2016, n�o s�o mais aceitos,
--- ent�o tive que deletar os usuarios do database e dar novamente os acessos.
-use protheus_teste
+-- os usuarios que vem junto no backup, apesar de terem nomes jah existentes no database destino, nao sao mais aceitos,
+-- entao tive que deletar os usuarios do database e dar novamente os acessos.
+use protheus_R33
 EXEC dbo.sp_changedbowner @loginame = N'siga', @map = false
 GO
 
 -- Altera nome logico dos arquivos (database precisa estar offline) e os arquivos devem ser renomeados pelo Windows.
-ALTER DATABASE [protheus_teste] MODIFY FILE (NAME=N'protheus', NEWNAME=N'protheus_teste')
-ALTER DATABASE [protheus_teste] MODIFY FILE (NAME=N'protheus_log', NEWNAME=N'protheus_teste_log')
-ALTER DATABASE [protheus_teste] SET RECOVERY SIMPLE WITH NO_WAIT
+ALTER DATABASE [protheus_R33] MODIFY FILE (NAME=N'protheus', NEWNAME=N'protheus_R33')
+ALTER DATABASE [protheus_R33] MODIFY FILE (NAME=N'protheus_log', NEWNAME=N'protheus_R33_log')
+ALTER DATABASE [protheus_R33] SET RECOVERY SIMPLE WITH NO_WAIT
 GO
-ALTER DATABASE [protheus_teste] SET RECOVERY SIMPLE 
+ALTER DATABASE [protheus_R33] SET RECOVERY SIMPLE 
 GO
 
 
