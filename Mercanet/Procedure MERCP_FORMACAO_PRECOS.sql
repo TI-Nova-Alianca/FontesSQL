@@ -5,6 +5,9 @@ GO
 ALTER PROCEDURE [dbo].[MERCP_FORMACAO_PRECOS] AS
 BEGIN
 
+-- Programa removido do database por que nunca chegamos a operar com 'formacao de precos'.
+-- Mais detalhes no chamado GLPI 12450. Robert, 08/08/2022
+
 -- Cria sinonimos para os caminhos/nomes das tabelas, de modo que possa ser usada a mesma
 -- rotina de integracao, mas acessando o database correto cfe. cada ambiente.
 EXEC MERCP_CRIA_SINONIMOS_TABELAS;
