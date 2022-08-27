@@ -27,9 +27,9 @@ ORDER BY des.program_name,
 dec.client_net_address ;
 */
 
-/* Para acessar o arquivo de backup provavelmente seja necess�rio mapear uma unidade PELO SQL (pelo
-   Windows n�o funciona). Antes disso, se o SQL ainda n�o estiver com a fun��o de shell habilitada,
-   pode ser necess�rio o seguinte :
+/* Para acessar o arquivo de backup provavelmente seja necessario mapear uma unidade PELO SQL (pelo
+   Windows nao funciona). Antes disso, se o SQL ainda nao estiver com a funcao de shell habilitada,
+   pode ser necessario o seguinte :
 -- To allow advanced options to be changed.  
 EXEC sp_configure 'show advanced options', 1;  
 GO  
@@ -44,7 +44,7 @@ RECONFIGURE;
 GO
 */
 
-/* Exemplos para mapear o drive K: pelo SQL (n�o adianta fazer pelo Windows):
+/* Exemplos para mapear o drive K: pelo SQL (nao adianta fazer pelo Windows):
 --exec xp_cmdshell 'net use k: \\192.168.2.94\shared'
 --exec xp_cmdshell 'net use k: /delete'
 --exec xp_cmdshell 'net use k: \\192.168.1.9\bkp-sql /user:admin Alianca164'
@@ -55,7 +55,7 @@ GO
 /*
 -- Verifica conteudo do arquivo (pode haver mais de 1 backup no arquivo). Nesse caso,
 -- usar WITH FILE= no comando de restore para especificar qual backup deve ser restaurado.
-declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 12-30 02-01-2022.bak'
+declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 18-30 15-08-2022.bak'
 --RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017
@@ -63,18 +63,16 @@ use master;
 RESTORE DATABASE [protheus_R33]
 FROM DISK = @nome_arq_bkp
 WITH FILE = 1,
-MOVE N'protheus' TO N'd:\Dados_SQL\protheus_R33.mdf',
-MOVE N'protheus_log' TO N'd:\Dados_SQL\protheus_R33_log.ldf',
+MOVE N'protheus' TO N'f:\Dados_SQL\protheus_R33.mdf',
+MOVE N'protheus_log' TO N'f:\Dados_SQL\protheus_R33_log.ldf',
 NOUNLOAD, REPLACE, STATS = 10
 GO
-
 
 -- monitora processo (abrir em janela separada)
 select DB_NAME (database_id) as banco, percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
 
-
--- Ajusta seguranca e acessos. Como a base quente encontra-se no SQL2005 e a teste no SQL2016, parece que
--- os usuarios que vem junto no backup, apesar de terem nomes jah existentes no database destino, nao sao mais aceitos,
+-- Ajusta seguranca e acessos. Parece que os usuarios que vem junto no backup,
+-- apesar de terem nomes jah existentes no database destino, nao sao mais aceitos,
 -- entao tive que deletar os usuarios do database e dar novamente os acessos.
 use protheus_R33
 EXEC dbo.sp_changedbowner @loginame = N'siga', @map = false
@@ -88,6 +86,8 @@ GO
 ALTER DATABASE [protheus_R33] SET RECOVERY SIMPLE 
 GO
 
+ALTER DATABASE [protheus_R33] SET COMPATIBILITY_LEVEL = 140
+GO
 
 drop user FullWMS
 CREATE USER [FullWMS] FOR LOGIN [FullWMS]
@@ -113,4 +113,15 @@ DROP USER [genexus]
 CREATE USER [genexus] FOR LOGIN [genexus] WITH DEFAULT_SCHEMA=[dbo]
 GRANT SELECT TO [genexus]
 
+DROP USER [GX_Safra]
+CREATE USER [GX_Safra] FOR LOGIN [GX_Safra] WITH DEFAULT_SCHEMA=[dbo]
+GRANT SELECT TO [GX_Safra]
+
+DROP USER [GX_NAweb]
+CREATE USER [GX_NAweb] FOR LOGIN [GX_NAweb] WITH DEFAULT_SCHEMA=[dbo]
+GRANT SELECT TO [GX_NAweb]
+
+DROP USER [GX_NAmob]
+CREATE USER [GX_NAmob] FOR LOGIN [GX_NAmob] WITH DEFAULT_SCHEMA=[dbo]
+GRANT SELECT TO [GX_NAmob]
 */
