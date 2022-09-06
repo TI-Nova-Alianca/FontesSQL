@@ -13,6 +13,7 @@ AS
 -- Historico de alteracoes:
 -- 21/04/2022 - Robert - Ampliado periodo para buscar pedidos a partir de 2017.
 -- 17/08/2022 - Robert - Adicionadas colunas vend1, vend2, vaest, codlin, vamarcm, prcven
+-- 05/09/2022 - Robert - Incluido campo B1_TIPO
 --
 
 SELECT
@@ -36,6 +37,7 @@ SELECT
 	,SC5.C5_VAEST    -- ESTADO (UF) DO CLIENTE
 	,SB1.B1_CODLIN   -- VINCULADO A VPBI_LINHAS_COMERCIAIS
 	,SB1.B1_VAMARCM  -- VINCULADO A VPBI_MARCAS_COMERCIAIS
+	,SB1.B1_TIPO
 FROM protheus.dbo.SC6010 SC6
 	,protheus.dbo.SC5010 SC5
 	,protheus.dbo.SB1010 SB1
