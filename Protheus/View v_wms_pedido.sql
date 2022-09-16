@@ -1,7 +1,6 @@
 /****** Object:  View [dbo].[v_wms_pedido]    Script Date: 10/05/2022 11:43:42 ******/
 SET ANSI_NULLS ON
 GO
-
 SET QUOTED_IDENTIFIER ON
 GO
 
@@ -25,6 +24,7 @@ AS
 --                      - Removidas tabelas SC5 e SC6 (estavam sem utilizacao)
 -- 09/06/2022 - Robert  - Removidas algumas linhas comentariadas
 --                      - Testes com nrreserva e pedido_id (desfeitos apos os testes)
+-- 09/09/2022 - Robert  - Incluidas solicitacoes da tabela ZAG.
 --
 
 WITH C
@@ -94,6 +94,48 @@ SELECT
 		,SC9.C9_PRODUTO
 		,SC9.C9_LOCAL
 		,SC9.C9_FILIAL
+
+union all
+
+-- Solicitacoes de transferencia saindo do ax01 (controlado pelo FullWMS)
+SELECT 'ZAG' + ZAG_FILIAL + ZAG_DOC AS saida_id
+		,ZAG_DOC AS nrodoc
+		,'1' AS linha
+		,substring (ZAG.ZAG_EMIS, 7, 2) + '/' + substring (ZAG.ZAG_EMIS,5, 2) + '/' + substring (ZAG.ZAG_EMIS, 1, 4) AS dtemissao
+		,substring (ZAG.ZAG_EMIS, 7, 2) + '/' + substring (ZAG.ZAG_EMIS,5, 2) + '/' + substring (ZAG.ZAG_EMIS, 1, 4) AS dtentrega
+		,ZAG_USRINC AS nomecli
+		,'88612486000160' as cnpj
+		,'ESTR.GERARDO SANTIN GUARESE' AS endentrega
+		,'LAGOA BELA' AS bairro
+		,'FLORES DA CUNHA' AS cidade
+		,'RS' AS uf
+		,'95270000' AS cep
+		,ZAG_MOTIVO AS obs
+		,'' AS codtransp
+		,'AX' + ZAG.ZAG_ALMDST AS placa
+		,0 AS pesototal  -- CAMPO AGRUPADOR (OBRIGATORIO)
+		,0 AS valortotal
+		,'N' AS geraonda
+		,RTRIM(ZAG.ZAG_PRDORI) AS coditem
+		,ZAG.ZAG_QTDSOL AS qtde
+		,'' AS descr_compl
+		,'' as tipo_pedido
+		,'1' AS empresa
+		,1 AS cd
+		,ZAG.ZAG_DOC AS num_carga
+	FROM ZAG010 ZAG
+		, SB1010 SB1
+	WHERE ZAG.D_E_L_E_T_ = ''
+	AND ZAG.ZAG_ALMORI = '01'
+	AND ZAG.ZAG_EXEC = ' '
+	AND ZAG.ZAG_UAUTO = ''
+	AND SB1.D_E_L_E_T_ = ''   -- Procura manter mesmos criterios da view v_wms_item
+	AND SB1.B1_FILIAL = '  '  -- Procura manter mesmos criterios da view v_wms_item
+	AND SB1.B1_VAFULLW = 'S'  -- Procura manter mesmos criterios da view v_wms_item
+	AND SB1.B1_MSBLQL != '1'  -- Procura manter mesmos criterios da view v_wms_item
+	AND SB1.B1_VAPLLAS > 0    -- Procura manter mesmos criterios da view v_wms_item
+	AND SB1.B1_VAPLCAM > 0    -- Procura manter mesmos criterios da view v_wms_item
+	AND SB1.B1_COD = ZAG.ZAG_PRDORI
 )
 
 SELECT
