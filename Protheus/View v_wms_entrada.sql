@@ -3,8 +3,6 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-
-
 ALTER VIEW [dbo].[v_wms_entrada]
 AS
 -- Cooperativa Vinicola Nova Alianca Ltda
@@ -25,26 +23,28 @@ AS
 -- 22/08/2020 - Robert - Desabilitada leitura de NF de compra para AX 02 (nao vai entrar em producao por enquanto)
 --                     - Quando transf. pelo ZAG, identifica 'empresa' destino cfe. alm.destino.
 -- 24/10/2020 - Robert - Filtra ZAG_EMIS e ZA1_DATA somente do ultimo mes.
+-- 14/09/2022 - Robert - Melhorias entradas por transf.cadastradas no ZAG.
+--                     - Etiqueta deve constar na tabela tb_wms_etiquetas
 --
 
 WITH C
 AS
 (
 	SELECT
-	    RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
-	   ,RTRIM('SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ) AS entrada_id_antigo
-	   ,RTRIM(D3_DOC) AS nrodoc
-	   ,'' AS serie
-	   ,1 AS linha
-	   ,ZA1_CODIGO AS codfor
-	   ,'' AS descfor
-	   ,RTRIM(ZA1_PROD) AS coditem
-	   ,ZA1_QUANT AS qtde
-	   ,'6' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente
-	   ,RTRIM(ZA1.ZA1_CODIGO) AS placa
-	   ,SUBSTRING(D3_OP, 1, 8) AS lote
-	   ,1 AS empresa  -- 1=Logistica;2-Almox.ME/insumos
-	   ,1 AS cd
+		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
+		,RTRIM('SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ) AS entrada_id_antigo
+		,RTRIM(D3_DOC) AS nrodoc
+		,'' AS serie
+		,1 AS linha
+		,ZA1_CODIGO AS codfor
+		,'' AS descfor
+		,RTRIM(ZA1_PROD) AS coditem
+		,ZA1_QUANT AS qtde
+		,'6' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente
+		,RTRIM(ZA1.ZA1_CODIGO) AS placa
+		,SUBSTRING(D3_OP, 1, 8) AS lote
+		,1 AS empresa  -- 1=Logistica;2-Almox.ME/insumos
+		,1 AS cd
 	FROM SD3010 SD3
 		,ZA1010 ZA1
 	WHERE SD3.D_E_L_E_T_ = ''
@@ -53,16 +53,7 @@ AS
 	AND SD3.D3_ESTORNO != 'S'
 	AND D3_TM = '010' -- MELHORA PERFORMANCE --> AND D3_CF LIKE 'PR%'
 	AND D3_LOCAL = '11'
-
 	AND D3_EMISSAO > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
-
---	MELHOR CALCULAR 30 DIAS RETROATIVOS 'EM MEMORIA' DO QUE PESQUISAR NO SB9.
-/*	AND D3_EMISSAO > (SELECT
-			MAX(B9_DATA)
-		FROM SB9010 SB9
-		WHERE B9_FILIAL = D3_FILIAL
-		AND SB9.D_E_L_E_T_ = '')  -- NINGUEM APONTA PRODUCAO FORA DOS MESES EM ABERTO NO ESTOQUE
-*/
 	AND ZA1.D_E_L_E_T_ = ''
 	AND ZA1.ZA1_FILIAL = SD3.D3_FILIAL
 	AND ZA1.ZA1_OP = SD3.D3_OP
@@ -108,22 +99,22 @@ AS
 	SELECT
 		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
 		,'' as entrada_id_antigo
-	   ,ZAG.ZAG_DOC AS nrodoc
-	   ,'' AS serie
-	   ,'' AS linha
-	   ,ZA1_CODIGO AS codfor
-	   ,'' AS descfor
-	   ,RTRIM(ZAG.ZAG_PRDORI) AS coditem
-	   ,ZAG.ZAG_QTDSOL AS qtde
-	   ,'2' --'1' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente
-	   ,'Tr.man.' + ZAG.ZAG_DOC AS placa
-	   ,ZAG.ZAG_LOTORI AS lote
-	   , CASE ZAG.ZAG_ALMDST WHEN '01' THEN 1 WHEN '02' THEN 2 ELSE 0 END AS empresa --	   ,2 AS empresa  -- 1=Logistica;2-Almox.ME/insumos
-	   ,1 AS cd
+		,ZAG.ZAG_DOC AS nrodoc
+		,'' AS serie
+		,'' AS linha
+		,ZA1_CODIGO AS codfor
+		,'' AS descfor
+		,RTRIM(ZAG.ZAG_PRDORI) AS coditem
+		,ZAG.ZAG_QTDSOL AS qtde
+		,'6' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente
+		,'AX' + ZAG.ZAG_ALMORI AS placa
+		,ZAG.ZAG_LOTORI AS lote
+		,1 AS empresa
+		,1 AS cd
 	FROM ZAG010 ZAG, ZA1010 ZA1
 	WHERE ZAG.D_E_L_E_T_ = ''
 	AND ZAG.ZAG_FILDST = '01'  -- POR ENQUANTO, APENAS NA MATRIZ.
-	AND ZAG.ZAG_EMIS >= '20181001'  -- DATA DE INICIO DA INTEGRACAO
+	AND ZAG.ZAG_EMIS >= '20220904'  -- DATA DE INICIO DA INTEGRACAO
 	AND ZAG.ZAG_EMIS > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
 	AND ZA1.ZA1_DATA > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
 	AND ZA1.D_E_L_E_T_ = ''
@@ -145,5 +136,9 @@ and NOT EXISTS (SELECT
 	FROM tb_wms_entrada T
 	WHERE T.entrada_id = C.entrada_id_antigo)
 
--- Se o item nao foi enviado para o Full, nao adianta mostrar na view.
+-- Se a etiqueta nao foi enviada para o Full, nao adianta mostrar na view.
+and exists (select *
+			from tb_wms_etiquetas
+			where id = codfor)
+
 GO
