@@ -25,6 +25,7 @@ AS
 -- 24/10/2020 - Robert - Filtra ZAG_EMIS e ZA1_DATA somente do ultimo mes.
 -- 14/09/2022 - Robert - Melhorias entradas por transf.cadastradas no ZAG.
 --                     - Etiqueta deve constar na tabela tb_wms_etiquetas
+-- 16/09/2022 - Robert - Melhorias leitura ZAG.
 --
 
 WITH C
@@ -62,51 +63,18 @@ AS
 
 	UNION ALL
 
-/* PARECE QUE NUNCA VAI ENTRAR EM PRODUCAO... ROBERT, 22/08/2020
-	-- ENTRADAS POR NF
-	SELECT
-		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
-		,'' as entrada_id_antigo
-	   ,ZA1.ZA1_DOCE AS nrodoc
-	   ,ZA1.ZA1_SERIEE AS serie
-	   ,ZA1.ZA1_ITEM AS linha
-	   ,ZA1_CODIGO AS codfor
-	   ,'' AS descfor
-	   ,RTRIM(ZA1_PROD) AS coditem
-	   ,ZA1_QUANT AS qtde
-	   ,'1' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente
-	   ,'NF' + ZA1.ZA1_DOCE AS placa
-	   ,SD1.D1_LOTECTL AS lote
-	   ,2 AS empresa  -- 1=Logistica;2-Almox.ME/insumos
-	   ,1 AS cd
-	FROM SD1010 SD1, ZA1010 ZA1
-	WHERE SD1.D_E_L_E_T_ = ''
-	AND SD1.D1_FILIAL = '01'
-	AND SD1.D1_TIPO = 'N'
-	AND SD1.D1_DTDIGIT >= '20180815'  -- DATA DE INICIO DA INTEGRACAO
-	AND ZA1.D_E_L_E_T_ = ''
-	AND ZA1.ZA1_FILIAL = SD1.D1_FILIAL
-	AND ZA1.ZA1_FORNEC = SD1.D1_FORNECE
-	AND ZA1.ZA1_LOJAF = SD1.D1_LOJA
-	AND ZA1.ZA1_DOCE = SD1.D1_DOC
-	AND ZA1.ZA1_SERIEE = SD1.D1_SERIE
-	AND ZA1.ZA1_ITEM = SD1.D1_ITEM
-	AND ZA1.ZA1_IMPRES = 'S'
-
-	UNION ALL
-*/
-	-- ENTRADAS POR TRANSFERENCIA MANUAL
+	-- ENTRADAS POR SOLICITACAO MANUAL DE TRANSFERENCIA
 	SELECT
 		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
 		,'' as entrada_id_antigo
 		,ZAG.ZAG_DOC AS nrodoc
 		,'' AS serie
-		,'' AS linha
+		,1 AS linha
 		,ZA1_CODIGO AS codfor
-		,'' AS descfor
+		,ZA1_USRINC AS descfor
 		,RTRIM(ZAG.ZAG_PRDORI) AS coditem
 		,ZAG.ZAG_QTDSOL AS qtde
-		,'6' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente
+		,'1' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente;3-Ajuste de entrada;4-Cancelamento nota fiscal de saída;5-Cancelamento de pedido separado;
 		,'AX' + ZAG.ZAG_ALMORI AS placa
 		,ZAG.ZAG_LOTORI AS lote
 		,1 AS empresa
