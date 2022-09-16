@@ -79,8 +79,10 @@ AS
 		,ZAG.ZAG_LOTORI AS lote
 		,1 AS empresa
 		,1 AS cd
-	FROM ZAG010 ZAG, ZA1010 ZA1
+	FROM ZAG010 ZAG
+		, ZA1010 ZA1
 	WHERE ZAG.D_E_L_E_T_ = ''
+	AND ZAG.ZAG_FILIAL = '  '
 	AND ZAG.ZAG_FILDST = '01'  -- POR ENQUANTO, APENAS NA MATRIZ.
 	AND ZAG.ZAG_EMIS >= '20220904'  -- DATA DE INICIO DA INTEGRACAO
 	AND ZAG.ZAG_EMIS > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
@@ -90,17 +92,14 @@ AS
 	AND ZA1.ZA1_IDZAG = ZAG.ZAG_DOC
 	AND ZA1.ZA1_IMPRES = 'S'
 	)
-SELECT
-	*
+SELECT *
 FROM C
 
 -- Se ja consta na tabela de retorno, nao posso mais mostrar na view.
-WHERE NOT EXISTS (SELECT
-		*
+WHERE NOT EXISTS (SELECT *
 	FROM tb_wms_entrada T
 	WHERE T.entrada_id = C.entrada_id)
-and NOT EXISTS (SELECT
-		*
+and NOT EXISTS (SELECT *
 	FROM tb_wms_entrada T
 	WHERE T.entrada_id = C.entrada_id_antigo)
 
