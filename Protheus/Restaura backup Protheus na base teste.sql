@@ -86,6 +86,13 @@ GO
 ALTER DATABASE [protheus_R33] SET RECOVERY SIMPLE 
 GO
 
+-- Caso precise renomear os arquivos fisicos: geralmente o Windows remove a permissao
+-- de acesso aos arquivos .mdb e .ldf quando renomeados ou movidos para outra pasta.
+-- Nesse caso, editar permissão e adicionar nova permissao selecionando o local como
+-- o servidor onde encontra-se o banco (nao o dominio) e colar o nome de usuario que
+-- pode ser obtido verificando a conta que roda o servico do SQLServer nesse servidor.
+
+
 ALTER DATABASE [protheus_R33] SET COMPATIBILITY_LEVEL = 140
 GO
 

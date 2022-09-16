@@ -42,8 +42,12 @@ from wms_estoques_cd
 group by endereco_id
 having count (*) > 1
 
-select *
+select * --sum (qtd)
 from wms_estoques_cd
+where situacao != 'L'
+and item_cod_item_log = '0151'
+where rownum <= 100
+
 where endereco_id = 4461
 
 select * from wms_enderecos
