@@ -10,7 +10,8 @@ GO
 -- Historico de alteracoes:
 -- 15/05/2021 - Robert - Criado vinculo com usuarios do NaWeb.
 -- 21/09/2021 - Robert - Nao sugere mais que seja concatenada a funcao da pessoa no campo 'cargo' no Protheus.
---
+-- 21/09/2022 - Robert - Passa a buscar tambem usuarios do FullWMS.
+-- 
 
 ALTER VIew [dbo].[VISAO_GERAL_ACESSOS]
 AS
@@ -76,8 +77,20 @@ SELECT
 		AND SR.SecRoleId = SUR.SecRoleId
 	) as NAWEB_PERFIS
 
+	, FULLWMS.GER_USUARIO_ID AS FULLWMS_ID
+	, FULLWMS.NOME AS FULLWMS_USER
+	, CASE FULLWMS.TIPO
+		WHEN '0' THEN 'Admin'
+		WHEN '1' THEN 'Normal'
+		ELSE ''
+	END AS FULLWMS_TIPO_USR
+	, FULLWMS.GER_USUGRUPO_ID AS FULLWMS_GRUPO
+	, FULLWMS.DESCRICAO_GRUPO AS FULLWMS_DESC_GRUPO
+
+-- A TABELA PRINCIPAL EH O CADASTRO DE PESSOAS DO METADADOS.
 FROM LKSRV_SIRH.SIRH.dbo.VA_VFUNCIONARIOS META
 
+	-- RELACIONA COM USUARIOS DO PROTHEUS
 	FULL OUTER JOIN (SELECT * FROM LKSRV_PROTHEUS.protheus.dbo.SYS_USR WHERE D_E_L_E_T_ = '') PROTHEUS_USERS
 		LEFT JOIN LKSRV_PROTHEUS.protheus.dbo.SYS_USR_SSIGNON
 			ON (SYS_USR_SSIGNON.D_E_L_E_T_ = ''
@@ -85,8 +98,20 @@ FROM LKSRV_SIRH.SIRH.dbo.VA_VFUNCIONARIOS META
 		ON (PROTHEUS_USERS.D_E_L_E_T_ = ''
 				AND PROTHEUS_USERS.USR_CARGO LIKE 'Pessoa ' + CAST(META.PESSOA AS VARCHAR(MAX)) + '%')
 
+	-- RELACIONA COM USUARIOS DO ACTIVE DIRECTORY (TABELA PREVIAMENTE ALIMENTADA VIA POWERSHELL)
 	FULL OUTER JOIN USUARIOS_AD AD
 		FULL OUTER JOIN LKSRV_NAWEB.naweb.dbo.SecUser NAWEB
 			ON (NAWEB.SecUserName = AD.SamAccountName)
 		ON (EmployeeID = 'Pessoa ' + CAST(META.PESSOA AS VARCHAR(MAX)))
+
+	-- RELACIONA COM USUARIOS DO FULLSOFT
+	FULL OUTER JOIN (select *
+					from OPENQUERY ("LKSRV_FULLWMS_LOGISTICA"
+									,'select ger_usuarios.*, ger_usu_grupos.descricao as descricao_grupo
+									from ger_usuarios
+										left join ger_usu_grupos
+										on (ger_usu_grupos.ger_usugrupo_id = ger_usuarios.ger_usugrupo_id)'
+									)
+					) FULLWMS
+			ON (UPPER (FULLWMS.NOMECOMPLETO) LIKE '%PESSOA ' + CAST(META.PESSOA AS VARCHAR(MAX)) + '%')
 GO

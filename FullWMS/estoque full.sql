@@ -55,7 +55,21 @@ where rownum <= 100
 --and id = 5761
 and endereco_formatado = 'I-56-5'
 
-select wms_acertoestoquecd_id
+
+select * from ger_usuarios
+left join ger_usu_grupos
+on (ger_usu_grupos.ger_usugrupo_id = ger_usuarios.ger_usugrupo_id)
+where upper (nomecompleto) not like '%PESSOA%'
+
+
+-- ultimos movimentos de estoque do usuario
+select ger_usuarios.nome, ger_usuarios.nomecompleto, wms_acerto_estoque_cd.*
 from wms_acerto_estoque_cd
+left join ger_usuarios on (ger_usuarios.ger_usuario_id = wms_acerto_estoque_cd.colab_cod_colab)
+where rownum <= 1000
+and colab_cod_colab = 35
+order by dthr desc
+
+select * from wms_logs
 where rownum <= 100
-and trunc(dthr) between TO_DATE('20220428','YYYYMMDD') and TO_DATE('20220428','YYYYMMDD')
+and (colab_cod_colab = 35 or usuario like 'GUILHERMET%')
