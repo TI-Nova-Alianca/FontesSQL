@@ -14,6 +14,7 @@ GO
 -- 07/07/2021 - Robert - Deixa de usar tabela customizada e passa a usar a tabela padrao SYS_USR.
 -- 27/04/2022 - Robert - Testes fixos com almox.X B1_VAFULLW removidos (criei um usuario 'fullwms' no Protheus)
 -- 05/05/2022 - Robert - Versao inicial com campo explicativo em HTML
+-- 29/09/2022 - Robert - Criada coluna STATUS_EXECUCAO
 --
 
 ALTER VIEW [dbo].[VA_VSOL_TRANSF_ESTOQUE] AS 
@@ -42,6 +43,13 @@ WITH C AS (
 		, '' AS LIBERADORES_PCP  -- POR ENQUANTO NAO VAI SER USADO
 		, '' AS LIBERADORES_QUALIDADE  -- POR ENQUANTO NAO VAI SER USADO
 		, SB1.B1_UM
+		, CASE ZAG_EXEC
+			WHEN ' ' THEN 'Nao executado'
+			WHEN 'S' THEN ZAG_EXEC + '-Executado'
+			WHEN 'E' THEN ZAG_EXEC + '-Erro na execucao'
+			WHEN 'X' THEN ZAG_EXEC + '-Estornado no ERP'
+			ELSE ''
+		END AS STATUS_EXECUCAO
 	FROM ZAG010 ZAG, SB1010 SB1
 	WHERE ZAG.D_E_L_E_T_ = ''
 	AND SB1.D_E_L_E_T_ = ''
