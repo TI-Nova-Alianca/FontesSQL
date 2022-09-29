@@ -47,6 +47,50 @@ select * from wms_acerto_estoque_cd
 where rownum <= 100  -- primeiras 10 linhas
 and wms_acertoestoquecd_id in (196207,196419)
 
+
+select wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la as posicao
+    , wms_estoques_cd.qtd
+    , wms_la.status as situacao_estq
+    , wms_ruas_armazenagens.tipo_rua || '-' || case wms_ruas_armazenagens.tipo_rua
+            when 1 then 'crossdocking'
+            when 2 then 'armazenagem'
+            when 9 then 'indisponivel'
+            else '' end as situacao_rua
+    , wms_estoques_cd.*
+from wms_estoques_cd
+    join wms_la
+        join wms_predios
+            join wms_ruas_armazenagens
+            on (wms_ruas_armazenagens.cod_ruasarm = wms_predios.ruasarm_cod_ruasarm)
+        on (wms_predios.predio_id = wms_la.predio_predio_id)
+    on (wms_la.empr_codemp = wms_estoques_cd.empr_codemp
+    and wms_la.cod_la = wms_estoques_cd.la_cod_la
+    and wms_la.predio_predio_id = wms_estoques_cd.predio_predio_id)
+where rownum <= 100
+and  wms_estoques_cd.item_cod_item_log = '2626'
+order by wms_predios.ruasarm_cod_ruasarm, wms_predios.cod_predio
+
+
+select * from v_wms_estoques_alianca where cod_item = '2626'
+
+select * from wms_predios
+where rownum <= 100
+and predio_id = 381
+
+select * from wms_la
+where rownum <= 100
+and status = 'B'
+
+select tipo_rua || '-' || case tipo_rua
+        when 1 then 'crossdocking'
+        when 2 then 'armazenagem'
+        when 9 then 'indisponivel'
+        else '' end as descr_tipo_rua
+    , wms_ruas_armazenagens.*
+from wms_ruas_armazenagens
+where rownum <= 100
+order by cod_ruasarm
+
 /*
 select * from wms_etiquetas
 where rownum <= 100  -- primeiras 10 linhas
