@@ -31,16 +31,16 @@ from (select
            left join wms_acerto_estoque_cd a on (a.wms_acertoestoquecd_id = m.wms_acertoestoque_id)
     ) movtos
         left join item on (item.codigo = movtos.itelog_item_cod_item)
-where itelog_item_cod_item = '30223'
---where trunc(m.dt_mov) between TO_DATE('20220101','YYYYMMDD') and TO_DATE('20220922','YYYYMMDD')
---and lote = '12754701'
+where itelog_item_cod_item = '0151'
+--and trunc(m.dt_mov) between TO_DATE('20220101','YYYYMMDD') and TO_DATE('20220922','YYYYMMDD')
+and lote = '12816301'
 order by dt_mov
 
 -- quando endereco origem vazio, foi gerada etiqueta de entrada direto pelo Full
 
 select * from wms_mov_estoques_cd
-where trunc(dt_mov) in (TO_DATE('20220628','YYYYMMDD'), TO_DATE('20220610','YYYYMMDD'))
-and itelog_item_cod_item = '30223'
+where trunc(dt_mov) in (TO_DATE('20220925','YYYYMMDD'), TO_DATE('20220930','YYYYMMDD'))
+and itelog_item_cod_item = '0151'
 --and wms_acertoestoque_id is null
 
 select * from wms_acerto_estoque_cd
@@ -48,14 +48,20 @@ where rownum <= 100  -- primeiras 10 linhas
 and wms_acertoestoquecd_id in (196207,196419)
 
 
-select wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la as posicao
+select wms_estoques_cd.item_cod_item_log
+    , wms_estoques_cd.lote
     , wms_estoques_cd.qtd
-    , wms_la.status as situacao_estq
+    , wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la as posicao
+    --, wms_la.status as status_la
     , wms_ruas_armazenagens.tipo_rua || '-' || case wms_ruas_armazenagens.tipo_rua
             when 1 then 'crossdocking'
             when 2 then 'armazenagem'
             when 9 then 'indisponivel'
             else '' end as situacao_rua
+    , wms_estoques_cd.situacao || '-' || + case wms_estoques_cd.situacao
+            when 'L' then 'liberado'
+            when 'B' then 'bloqueado'
+            else '' end as situacao_lote
     , wms_estoques_cd.*
 from wms_estoques_cd
     join wms_la
@@ -67,11 +73,13 @@ from wms_estoques_cd
     and wms_la.cod_la = wms_estoques_cd.la_cod_la
     and wms_la.predio_predio_id = wms_estoques_cd.predio_predio_id)
 where rownum <= 100
-and  wms_estoques_cd.item_cod_item_log = '2626'
+and  wms_estoques_cd.item_cod_item_log = '0151' --'2626'
 order by wms_predios.ruasarm_cod_ruasarm, wms_predios.cod_predio
 
 
-select * from v_wms_estoques_alianca where cod_item = '2626'
+select distinct situacao from wms_estoques_cd
+
+select * from v_wms_estoques_alianca where cod_item = '0151'
 
 select * from wms_predios
 where rownum <= 100
