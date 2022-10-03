@@ -11,6 +11,7 @@ GO
 -- Historico de alteracoes:
 -- 23/03/2022 - Robert  - Criado sinonimo para VA_VRAPEL_PADRAO e MER_PERCOMP
 -- 06/04/2022 - Claudia - Alterado o apontamento da homologacao para R33
+-- 29/09/2022 - Robert  - Database protheus_R33 renomeado para protheus_teste.
 --
 
 alter PROCEDURE [dbo].[MERCP_CRIA_SINONIMOS_TABELAS] AS
@@ -96,38 +97,38 @@ BEGIN
     ELSE
     BEGIN
         print 'Criando sinonimos para ambiente de HOMOLOGACAO'
-        create synonym INTEGRACAO_PROTHEUS_CC2              for LKSRV_PROTHEUS.protheus_R33.dbo.CC2010
-        create synonym INTEGRACAO_PROTHEUS_CC3              for LKSRV_PROTHEUS.protheus_R33.dbo.CC3010
-        create synonym INTEGRACAO_PROTHEUS_DA0              for LKSRV_PROTHEUS.protheus_R33.dbo.DA0010
-        create synonym INTEGRACAO_PROTHEUS_DA1              for LKSRV_PROTHEUS.protheus_R33.dbo.DA1010
-        create synonym INTEGRACAO_PROTHEUS_SA1              for LKSRV_PROTHEUS.protheus_R33.dbo.SA1010
-        create synonym INTEGRACAO_PROTHEUS_SA3              for LKSRV_PROTHEUS.protheus_R33.dbo.SA3010
-        create synonym INTEGRACAO_PROTHEUS_SA4              for LKSRV_PROTHEUS.protheus_R33.dbo.SA4010
-        create synonym INTEGRACAO_PROTHEUS_SA5              for LKSRV_PROTHEUS.protheus_R33.dbo.SA5010
-        create synonym INTEGRACAO_PROTHEUS_SA6              for LKSRV_PROTHEUS.protheus_R33.dbo.SA6010
-        create synonym INTEGRACAO_PROTHEUS_SB1              for LKSRV_PROTHEUS.protheus_R33.dbo.SB1010
-        create synonym INTEGRACAO_PROTHEUS_SB5              for LKSRV_PROTHEUS.protheus_R33.dbo.SB5010
-        create synonym INTEGRACAO_PROTHEUS_SBM              for LKSRV_PROTHEUS.protheus_R33.dbo.SBM010
-        create synonym INTEGRACAO_PROTHEUS_SC5              for LKSRV_PROTHEUS.protheus_R33.dbo.SC5010
-        create synonym INTEGRACAO_PROTHEUS_SC6              for LKSRV_PROTHEUS.protheus_R33.dbo.SC6010
-        create synonym INTEGRACAO_PROTHEUS_SD1              for LKSRV_PROTHEUS.protheus_R33.dbo.SD1010
-        create synonym INTEGRACAO_PROTHEUS_SD2              for LKSRV_PROTHEUS.protheus_R33.dbo.SD2010
-        create synonym INTEGRACAO_PROTHEUS_SE1              for LKSRV_PROTHEUS.protheus_R33.dbo.SE1010
-        create synonym INTEGRACAO_PROTHEUS_SE3              for LKSRV_PROTHEUS.protheus_R33.dbo.SE3010
-        create synonym INTEGRACAO_PROTHEUS_SE4              for LKSRV_PROTHEUS.protheus_R33.dbo.SE4010
-        create synonym INTEGRACAO_PROTHEUS_SE5              for LKSRV_PROTHEUS.protheus_R33.dbo.SE5010
-        create synonym INTEGRACAO_PROTHEUS_SF1              for LKSRV_PROTHEUS.protheus_R33.dbo.SF1010
-        create synonym INTEGRACAO_PROTHEUS_SF2              for LKSRV_PROTHEUS.protheus_R33.dbo.SF2010
-        create synonym INTEGRACAO_PROTHEUS_SF4              for LKSRV_PROTHEUS.protheus_R33.dbo.SF4010
-        create synonym INTEGRACAO_PROTHEUS_SF7              for LKSRV_PROTHEUS.protheus_R33.dbo.SF7010
-        create synonym INTEGRACAO_PROTHEUS_SX5              for LKSRV_PROTHEUS.protheus_R33.dbo.SX5010
-        create synonym INTEGRACAO_PROTHEUS_SYA              for LKSRV_PROTHEUS.protheus_R33.dbo.SYA010
-        create synonym INTEGRACAO_PROTHEUS_ZAZ              for LKSRV_PROTHEUS.protheus_R33.dbo.ZAZ010
-        create synonym INTEGRACAO_PROTHEUS_ZC5              for LKSRV_PROTHEUS.protheus_R33.dbo.ZC5010
-        create synonym INTEGRACAO_PROTHEUS_ZC6              for LKSRV_PROTHEUS.protheus_R33.dbo.ZC6010
-        create synonym INTEGRACAO_PROTHEUS_ZX5              for LKSRV_PROTHEUS.protheus_R33.dbo.ZX5010
-        create synonym INTEGRACAO_PROTHEUS_MER_PERCOMP      for LKSRV_PROTHEUS.protheus_R33.dbo.MER_PERCOMP
-        create synonym INTEGRACAO_PROTHEUS_VA_VRAPEL_PADRAO for LKSRV_PROTHEUS.protheus_R33.dbo.VA_VRAPEL_PADRAO
+        create synonym INTEGRACAO_PROTHEUS_CC2              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.CC2010
+        create synonym INTEGRACAO_PROTHEUS_CC3              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.CC3010
+        create synonym INTEGRACAO_PROTHEUS_DA0              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.DA0010
+        create synonym INTEGRACAO_PROTHEUS_DA1              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.DA1010
+        create synonym INTEGRACAO_PROTHEUS_SA1              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SA1010
+        create synonym INTEGRACAO_PROTHEUS_SA3              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SA3010
+        create synonym INTEGRACAO_PROTHEUS_SA4              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SA4010
+        create synonym INTEGRACAO_PROTHEUS_SA5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SA5010
+        create synonym INTEGRACAO_PROTHEUS_SA6              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SA6010
+        create synonym INTEGRACAO_PROTHEUS_SB1              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SB1010
+        create synonym INTEGRACAO_PROTHEUS_SB5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SB5010
+        create synonym INTEGRACAO_PROTHEUS_SBM              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SBM010
+        create synonym INTEGRACAO_PROTHEUS_SC5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SC5010
+        create synonym INTEGRACAO_PROTHEUS_SC6              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SC6010
+        create synonym INTEGRACAO_PROTHEUS_SD1              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SD1010
+        create synonym INTEGRACAO_PROTHEUS_SD2              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SD2010
+        create synonym INTEGRACAO_PROTHEUS_SE1              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SE1010
+        create synonym INTEGRACAO_PROTHEUS_SE3              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SE3010
+        create synonym INTEGRACAO_PROTHEUS_SE4              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SE4010
+        create synonym INTEGRACAO_PROTHEUS_SE5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SE5010
+        create synonym INTEGRACAO_PROTHEUS_SF1              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SF1010
+        create synonym INTEGRACAO_PROTHEUS_SF2              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SF2010
+        create synonym INTEGRACAO_PROTHEUS_SF4              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SF4010
+        create synonym INTEGRACAO_PROTHEUS_SF7              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SF7010
+        create synonym INTEGRACAO_PROTHEUS_SX5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SX5010
+        create synonym INTEGRACAO_PROTHEUS_SYA              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.SYA010
+        create synonym INTEGRACAO_PROTHEUS_ZAZ              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.ZAZ010
+        create synonym INTEGRACAO_PROTHEUS_ZC5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.ZC5010
+        create synonym INTEGRACAO_PROTHEUS_ZC6              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.ZC6010
+        create synonym INTEGRACAO_PROTHEUS_ZX5              for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.ZX5010
+        create synonym INTEGRACAO_PROTHEUS_MER_PERCOMP      for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.MER_PERCOMP
+        create synonym INTEGRACAO_PROTHEUS_VA_VRAPEL_PADRAO for LKSRV_PROTHEUS_TESTE.protheus_teste.dbo.VA_VRAPEL_PADRAO
     END
 END
 GO
