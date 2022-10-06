@@ -1,10 +1,10 @@
 select movtos.*
     , item.descricao
 from (select
-        case when m.wms_acertoestoque_id is null
-            then decode(m.cod_ruasarm_origem, null, 'entrada', 'saida')
-            else 'ajuste inv.'
-        end as tipo_mov,
+        --case when m.wms_acertoestoque_id is null
+        --    then decode(m.cod_ruasarm_origem, null, 'entrada', 'saida')
+        --    else 'ajuste inv.'
+        --end as tipo_mov,
         m.wms_tpmovestoque_id,
         decode(m.cod_ruasarm_origem, null, m.codigo_area_origem, m.cod_ruasarm_origem || '-' ||
             m.cod_predio_origem || '-' ||
@@ -31,9 +31,10 @@ from (select
            left join wms_acerto_estoque_cd a on (a.wms_acertoestoquecd_id = m.wms_acertoestoque_id)
     ) movtos
         left join item on (item.codigo = movtos.itelog_item_cod_item)
-where itelog_item_cod_item = '0151'
+where itelog_item_cod_item = '0328'
 --and trunc(m.dt_mov) between TO_DATE('20220101','YYYYMMDD') and TO_DATE('20220922','YYYYMMDD')
-and lote = '12816301'
+and lote = '11023801'
+and origem != 'PROD01'
 order by dt_mov
 
 -- quando endereco origem vazio, foi gerada etiqueta de entrada direto pelo Full
@@ -48,6 +49,7 @@ where rownum <= 100  -- primeiras 10 linhas
 and wms_acertoestoquecd_id in (196207,196419)
 
 
+-- Estoques e situacao do endereco / estoque
 select wms_estoques_cd.item_cod_item_log
     , wms_estoques_cd.lote
     , wms_estoques_cd.qtd
