@@ -9,18 +9,23 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 ALTER VIEW [dbo].[VA_VDADOS_OS] AS 
-	-- Cooperativa Agroindustrial Nova Alianca Ltda
-	-- View para buscar dados de ordens de servico da manutencao de ativos.
-	-- Autor: Robert Koch
-	-- Data:  01/12/2021
-	-- Historico de alteracoes:
-	-- 06/12/2021 - Robert - Criadas colunas MANUTENTOR1, MANUTENTOR2, 3 e 4.
-	-- 22/02/2022 - Robert - Adicionados alguns comentarios sobre as colunas
-	-- 08/04/2022 - Robert - Melhorada a leitura de manutentores por OS:
-	--                         - Usa LEFT JOIN entre SLT e ST1
-	--                         - Desconsidera TL_REPFIM = 'S' (para trazer tambem os menutentores previstos para a OS)
-	--                     - Adicionados mais manutentores (ate 7)
-	--
+-- Cooperativa Agroindustrial Nova Alianca Ltda
+-- View para buscar dados de ordens de servico da manutencao de ativos.
+-- Autor: Robert Koch
+-- Data:  01/12/2021
+-- Historico de alteracoes:
+-- 06/12/2021 - Robert - Criadas colunas MANUTENTOR1, MANUTENTOR2, 3 e 4.
+-- 22/02/2022 - Robert - Adicionados alguns comentarios sobre as colunas
+-- 08/04/2022 - Robert - Melhorada a leitura de manutentores por OS:
+--                         - Usa LEFT JOIN entre SLT e ST1
+--                         - Desconsidera TL_REPFIM = 'S' (para trazer tambem os menutentores previstos para a OS)
+--                     - Adicionados mais manutentores (ate 7)
+--
+
+-- Obs: jah tive casos de sujeira nas tabelas, que arrumei assim: (GLPI 12692)
+-- BEGIN TRAN; UPDATE STJ010 SET TJ_HOMRFIM = '23:59' WHERE TJ_HOMRFIM = '24:00'
+-- BEGIN TRAN; UPDATE STJ010 SET TJ_HOMRFIM = SUBSTRING (TJ_HOMRFIM, 1, 3) + '59' WHERE TJ_HOMRFIM != '' AND SUBSTRING (TJ_HOMRFIM, 4, 2) > '59'
+-- BEGIN TRAN; UPDATE STJ010 SET TJ_HOMPINI = '' WHERE TJ_HOMPINI = '  :  '
 
 -- MONTA UMA CTE CONTENDO OS NOMES DOS PRINCIPAIS MANUTENTORES DE CADA O.S. EM COLUNAS,
 -- PARA PODER, DEPOIS, FAZER UM JOIN COM A TABELA PRINCIPAL DE O.S.
