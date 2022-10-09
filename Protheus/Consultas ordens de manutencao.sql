@@ -163,3 +163,18 @@ ORDER BY TL_FILIAL, TL_ORDEM, TL_CODIGO
 --SELECT * FROM SC2010 WHERE C2_FILIAL = '01' AND C2_NUM in ('028535','028536')
 
 
+select top 1000 * from VA_VDADOS_OS
+where ORDEM <= '001308'
+AND INICIO_PREVISTO between '20180528' and '20180618'
+
+
+select distinct TJ_TIPO from STJ010
+select top 100 * from STE010 
+SELECT * FROM SX3010 WHERE X3_CAMPO = 'TJ_TIPO'
+Bom dia, Jocemar.
+Abaixo as tabelas exportáveis pela 'consulta genérica:'
+ST4 (tipos de serviços)
+STF (necessidades de manutenção)
+STI (planos de manutenção)
+STJ (ordens de serviço - escolher tipo PRE para as preventivas cfe.tabela STE abaixo)
+STE	(tipos de manutenção)
