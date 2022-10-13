@@ -25,6 +25,7 @@ AS
 -- 09/06/2022 - Robert  - Removidas algumas linhas comentariadas
 --                      - Testes com nrreserva e pedido_id (desfeitos apos os testes)
 -- 09/09/2022 - Robert  - Incluidas solicitacoes da tabela ZAG.
+-- 10/10/2022 - Robert  - Incluido campo lote (C9_LOTECTL / ZAG_LOTORI). Quando preenchidos, o Full deveria obedecer.
 --
 
 WITH C
@@ -53,6 +54,7 @@ SELECT
        ,'N' AS geraonda
 	   ,RTRIM(C9_PRODUTO) AS coditem
 	   ,SUM(C9_QTDLIB) AS qtde
+	   ,C9_LOTECTL as lote
 	   ,'' AS descr_compl
 	   ,'' as tipo_pedido
 	   ,'1' AS empresa
@@ -94,6 +96,7 @@ SELECT
 		,SC9.C9_PRODUTO
 		,SC9.C9_LOCAL
 		,SC9.C9_FILIAL
+		,SC9.C9_LOTECTL
 
 union all
 
@@ -118,6 +121,7 @@ SELECT 'ZAG' + ZAG_FILIAL + ZAG_DOC AS saida_id
 		,'N' AS geraonda
 		,RTRIM(ZAG.ZAG_PRDORI) AS coditem
 		,ZAG.ZAG_QTDSOL AS qtde
+		,ZAG.ZAG_LOTORI as lote
 		,'' AS descr_compl
 		,'' as tipo_pedido
 		,'1' AS empresa
@@ -166,6 +170,7 @@ SELECT
    ,'1' AS tpdoc
    ,99 AS prioridade
    ,descr_compl
+   ,lote
    ,tipo_pedido
    ,'' AS obs_item
    ,'' AS kanban
