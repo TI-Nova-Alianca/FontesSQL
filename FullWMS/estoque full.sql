@@ -75,9 +75,10 @@ from wms_estoques_cd
     and wms_la.cod_la = wms_estoques_cd.la_cod_la
     and wms_la.predio_predio_id = wms_estoques_cd.predio_predio_id)
 where rownum <= 100
-and  wms_estoques_cd.item_cod_item_log = '0151' --'2626'
+and  wms_estoques_cd.item_cod_item_log = '3249A' --'2626'
 order by wms_predios.ruasarm_cod_ruasarm, wms_predios.cod_predio
 
+aqui ainda faltaria buscar as RESERVAS 
 
 select distinct situacao from wms_estoques_cd
 

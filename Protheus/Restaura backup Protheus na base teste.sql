@@ -12,7 +12,7 @@ GO
 
 /*
 -- Verifica quem esta conectado e possivelmente impedindo o restore.
-use protheus_R33
+use protheus_teste
 SELECT dec.client_net_address ,
 des.program_name ,
 des.host_name ,
@@ -55,16 +55,16 @@ GO
 /*
 -- Verifica conteudo do arquivo (pode haver mais de 1 backup no arquivo). Nesse caso,
 -- usar WITH FILE= no comando de restore para especificar qual backup deve ser restaurado.
-declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 18-30 15-08-2022.bak'
+declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 18-30 10-10-2022.bak'
 --RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017
 use master;
-RESTORE DATABASE [protheus_R33]
+RESTORE DATABASE [protheus_teste]
 FROM DISK = @nome_arq_bkp
 WITH FILE = 1,
-MOVE N'protheus' TO N'f:\Dados_SQL\protheus_R33.mdf',
-MOVE N'protheus_log' TO N'f:\Dados_SQL\protheus_R33_log.ldf',
+MOVE N'protheus' TO N'f:\Dados_SQL\protheus_teste.mdf',
+MOVE N'protheus_log' TO N'f:\Dados_SQL\protheus_teste_log.ldf',
 NOUNLOAD, REPLACE, STATS = 10
 GO
 
@@ -74,16 +74,16 @@ select DB_NAME (database_id) as banco, percent_complete, total_elapsed_time / 60
 -- Ajusta seguranca e acessos. Parece que os usuarios que vem junto no backup,
 -- apesar de terem nomes jah existentes no database destino, nao sao mais aceitos,
 -- entao tive que deletar os usuarios do database e dar novamente os acessos.
-use protheus_R33
+use protheus_teste
 EXEC dbo.sp_changedbowner @loginame = N'siga', @map = false
 GO
 
 -- Altera nome logico dos arquivos (database precisa estar offline) e os arquivos devem ser renomeados pelo Windows.
-ALTER DATABASE [protheus_R33] MODIFY FILE (NAME=N'protheus', NEWNAME=N'protheus_R33')
-ALTER DATABASE [protheus_R33] MODIFY FILE (NAME=N'protheus_log', NEWNAME=N'protheus_R33_log')
-ALTER DATABASE [protheus_R33] SET RECOVERY SIMPLE WITH NO_WAIT
+ALTER DATABASE [protheus_teste] MODIFY FILE (NAME=N'protheus', NEWNAME=N'protheus_teste')
+ALTER DATABASE [protheus_teste] MODIFY FILE (NAME=N'protheus_log', NEWNAME=N'protheus_teste_log')
+ALTER DATABASE [protheus_teste] SET RECOVERY SIMPLE WITH NO_WAIT
 GO
-ALTER DATABASE [protheus_R33] SET RECOVERY SIMPLE 
+ALTER DATABASE [protheus_teste] SET RECOVERY SIMPLE 
 GO
 
 -- Caso precise renomear os arquivos fisicos: geralmente o Windows remove a permissao
@@ -93,7 +93,7 @@ GO
 -- pode ser obtido verificando a conta que roda o servico do SQLServer nesse servidor.
 
 
-ALTER DATABASE [protheus_R33] SET COMPATIBILITY_LEVEL = 140
+ALTER DATABASE [protheus_teste] SET COMPATIBILITY_LEVEL = 140
 GO
 
 drop user FullWMS

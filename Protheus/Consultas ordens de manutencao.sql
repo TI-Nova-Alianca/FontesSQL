@@ -178,3 +178,9 @@ STF (necessidades de manutenção)
 STI (planos de manutenção)
 STJ (ordens de serviço - escolher tipo PRE para as preventivas cfe.tabela STE abaixo)
 STE	(tipos de manutenção)
+
+
+-- BEGIN TRAN; UPDATE STJ010 SET TJ_HOMRFIM = '23:59' WHERE TJ_HOMRFIM = '24:00'
+-- BEGIN TRAN; UPDATE STJ010 SET TJ_HOMRFIM = SUBSTRING (TJ_HOMRFIM, 1, 3) + '59' WHERE TJ_HOMRFIM != '' AND SUBSTRING (TJ_HOMRFIM, 4, 2) > '59'
+-- BEGIN TRAN; UPDATE STJ010 SET TJ_HOMPINI = '' WHERE TJ_HOMPINI = '  :  '
+--commit
