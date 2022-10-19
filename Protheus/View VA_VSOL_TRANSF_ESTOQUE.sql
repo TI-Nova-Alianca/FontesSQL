@@ -15,6 +15,7 @@ GO
 -- 27/04/2022 - Robert - Testes fixos com almox.X B1_VAFULLW removidos (criei um usuario 'fullwms' no Protheus)
 -- 05/05/2022 - Robert - Versao inicial com campo explicativo em HTML
 -- 29/09/2022 - Robert - Criada coluna STATUS_EXECUCAO
+-- 19/10/2022 - Robert - Nao ladidava campo ZZU_VALID
 --
 
 ALTER VIEW [dbo].[VA_VSOL_TRANSF_ESTOQUE] AS 
@@ -31,6 +32,7 @@ WITH C AS (
 					WHERE ZZU.D_E_L_E_T_ = ''
 					AND ZZU.ZZU_FILIAL = '  '
 					AND U.USR_ID = ZZU.ZZU_USER
+					AND ZZU.ZZU_VALID >= FORMAT (CURRENT_TIMESTAMP, 'yyyyMMdd')
 					AND ZZU.ZZU_GRUPO = 'A' + ZAG.ZAG_ALMORI)
 					, '') AS LIBERADORES_ALMORI
 		, ISNULL ((SELECT NOMES = STRING_AGG (UPPER (RTRIM (U.USR_CODIGO)), ', ')
@@ -38,6 +40,7 @@ WITH C AS (
 					WHERE ZZU.D_E_L_E_T_ = ''
 					AND ZZU.ZZU_FILIAL = '  '
 					AND U.USR_ID = ZZU.ZZU_USER
+					AND ZZU.ZZU_VALID >= FORMAT (CURRENT_TIMESTAMP, 'yyyyMMdd')
 					AND ZZU.ZZU_GRUPO = 'A' + ZAG.ZAG_ALMDST)
 					, '') AS LIBERADORES_ALMDST
 		, '' AS LIBERADORES_PCP  -- POR ENQUANTO NAO VAI SER USADO
