@@ -10,7 +10,9 @@ GO
 -- Data.....: 15/08/2022
 --
 -- Historico de alteracoes:
---
+-- 27/10/2022 - Robert - Limpava a tabela VA_RENTABILIDADE pelo campo EMISSAO, que
+--                       no caso das devolucoes, vem do D1_DTDIGIT. Mas no filtro
+--                       do SD1 (gerar novos) considerava D1_EMISSAO (GLPI 12753).
 
 -- INFORMAR NUMERO DE DIAS RETROATIVOS PARA GERACAO DA TABELA.
 -- DEFAULT 60 DIAS RETROATIVOS PARA GERAR A NOITE
@@ -334,7 +336,7 @@ BEGIN
 				AND SZH.ZH_LOJA = SD1.D1_LOJA
 				AND SZH.ZH_ITNFE = SUBSTRING(SD1.D1_ITEM, 3, 2))
 			WHERE SD1.D_E_L_E_T_ = ''
-			AND SD1.D1_EMISSAO >= @DATAINI
+			AND SD1.D1_DTDIGIT >= @DATAINI  -- LIMPA PELO D1_DTDIGIT, ENTAO TEM QUE REGERAR POR ELE TAMBEM.			AND SD1.D1_EMISSAO >= @DATAINI
 			GROUP BY SF4.F4_MARGEM
 					,SD1.D1_FILIAL
 					,SD1.D1_FORNECE
@@ -626,4 +628,3 @@ BEGIN
 	END
 
 END
-GO
