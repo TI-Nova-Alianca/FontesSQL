@@ -13,6 +13,8 @@ GO
 -- 22/04/2022 - Robert - Acessos do NaWeb passam a vir com os perfis _ funcionalidades abertas.
 -- 01/08/2022 - Robert - Mostra se a pessoa encontra-se em ferias, junto com a situacao da folha.
 -- 22/09/2022 - Robert - Passa a buscar alguns dados do FullWMS
+-- 25/10/2022 - Robert - Diferencia COLABORADOR e USUARIO do FullWMS
+--                     - Busca mais dados (capacitacoes do colaborador) do FullWMS
 --
 
 -- Exemplo de uso:
@@ -50,10 +52,13 @@ BEGIN
 	DECLARE @NAWEB_ID                  VARCHAR (6)
 	DECLARE @NAWEB_USER                VARCHAR (20)
 	DECLARE @NAWEB_PERFIS              VARCHAR (MAX)
-	DECLARE @FULLWMS_ID                VARCHAR (6)
-	DECLARE @FULLWMS_USER              VARCHAR (20)
-	DECLARE @FULLWMS_TIPO              VARCHAR (6)
-	DECLARE @FULLWMS_GRUPO             VARCHAR (20)
+	DECLARE @FULLWMS_ID_COLABORADOR    INT --VARCHAR (6)
+	DECLARE @FULLWMS_NOME_COLABORADOR  VARCHAR (20)
+	DECLARE @FULLWMS_COLABORADOR_ATIVO VARCHAR (1)
+	DECLARE @FULLWMS_ID_USUARIO        INT --VARCHAR (6)
+	DECLARE @FULLWMS_NOME_USUARIO      VARCHAR (20)
+	DECLARE @FULLWMS_TIPO_USUARIO      VARCHAR (6)
+	DECLARE @FULLWMS_GRUPO_USUARIO     VARCHAR (20)
 
 	SET @RET = ''--DAY 04/05/21
 
@@ -65,18 +70,20 @@ BEGIN
 		, *
 	INTO #PESSOAS 
 	FROM VISAO_GERAL_ACESSOS
-	WHERE (UPPER (NOME_FOLHA)     LIKE '%' + @IN_PARTE_NOME1 + '%'
-		OR UPPER (AD_ACCOUNTNAME) LIKE '%' + @IN_PARTE_NOME1 + '%'
-		OR UPPER (PROTHEUS_USER)  LIKE '%' + @IN_PARTE_NOME1 + '%'
-		OR UPPER (PROTHEUS_NOME)  LIKE '%' + @IN_PARTE_NOME1 + '%'
-		OR UPPER (NAWEB_USER)     LIKE '%' + @IN_PARTE_NOME1 + '%'
-		OR UPPER (FULLWMS_USER)   LIKE '%' + @IN_PARTE_NOME1 + '%')
-	AND (UPPER (NOME_FOLHA)     LIKE '%' + @IN_PARTE_NOME2 + '%'
-		OR UPPER (AD_ACCOUNTNAME) LIKE '%' + @IN_PARTE_NOME2 + '%'
-		OR UPPER (PROTHEUS_USER)  LIKE '%' + @IN_PARTE_NOME2 + '%'
-		OR UPPER (PROTHEUS_NOME)  LIKE '%' + @IN_PARTE_NOME2 + '%'
-		OR UPPER (NAWEB_USER)     LIKE '%' + @IN_PARTE_NOME2 + '%'
-		OR UPPER (FULLWMS_USER)   LIKE '%' + @IN_PARTE_NOME2 + '%')
+	WHERE (UPPER (NOME_FOLHA)               LIKE '%' + @IN_PARTE_NOME1 + '%'
+		OR UPPER (AD_ACCOUNTNAME)           LIKE '%' + @IN_PARTE_NOME1 + '%'
+		OR UPPER (PROTHEUS_USER)            LIKE '%' + @IN_PARTE_NOME1 + '%'
+		OR UPPER (PROTHEUS_NOME)            LIKE '%' + @IN_PARTE_NOME1 + '%'
+		OR UPPER (NAWEB_USER)               LIKE '%' + @IN_PARTE_NOME1 + '%'
+		OR UPPER (FULLWMS_NOME_COLABORADOR) LIKE '%' + @IN_PARTE_NOME1 + '%'
+		OR UPPER (FULLWMS_NOME_USUARIO)     LIKE '%' + @IN_PARTE_NOME1 + '%')
+	AND (UPPER (NOME_FOLHA)                 LIKE '%' + @IN_PARTE_NOME2 + '%'
+		OR UPPER (AD_ACCOUNTNAME)           LIKE '%' + @IN_PARTE_NOME2 + '%'
+		OR UPPER (PROTHEUS_USER)            LIKE '%' + @IN_PARTE_NOME2 + '%'
+		OR UPPER (PROTHEUS_NOME)            LIKE '%' + @IN_PARTE_NOME2 + '%'
+		OR UPPER (NAWEB_USER)               LIKE '%' + @IN_PARTE_NOME2 + '%'
+		OR UPPER (FULLWMS_NOME_COLABORADOR) LIKE '%' + @IN_PARTE_NOME2 + '%'
+		OR UPPER (FULLWMS_NOME_USUARIO)     LIKE '%' + @IN_PARTE_NOME2 + '%')
 	ORDER BY NOME_FOLHA
 
 	SET @PESSOAS_ENCONTRADAS = (SELECT COUNT (*) FROM #PESSOAS)
@@ -103,14 +110,15 @@ BEGIN
 							, @PROTHEUS_USER             = ISNULL (RTRIM (PROTHEUS_USER), '')
 							, @PROTHEUS_NOME             = ISNULL (RTRIM (PROTHEUS_NOME), '')
 							, @NAWEB_USER                = ISNULL (NAWEB_USER, '')
-							, @FULLWMS_USER              = ISNULL (FULLWMS_USER, '')
+							, @FULLWMS_NOME_COLABORADOR  = ISNULL (FULLWMS_NOME_COLABORADOR, '')
+							, @FULLWMS_NOME_USUARIO      = ISNULL (FULLWMS_NOME_USUARIO, '')
 				FROM #PESSOAS
 				ORDER BY REGISTRO
 				SET @RET += '<[METADADOS: ' + RTRIM (@NOME_COMPLETO) + ' (' + RTRIM (@META_SETOR) + ')(' + RTRIM (@META_DESCRI_SITUACAO) + ')]'
 				SET @RET += ' [AD: '        + RTRIM (@AD_ACCOUNTNAME) + ']'
 				SET @RET += ' [PROTHEUS: '  + RTRIM (@PROTHEUS_USER) + '/' + RTRIM (@PROTHEUS_NOME) + ']'
 				SET @RET += ' [NAWEB: '     + RTRIM (@NAWEB_USER) + ']'
-				SET @RET += ' [FULLWMS: '   + RTRIM (@FULLWMS_USER) + ']'
+				SET @RET += ' [FULLWMS: '   + RTRIM (@FULLWMS_NOME_COLABORADOR) + '/' + RTRIM (@FULLWMS_NOME_USUARIO) + ']'
 				SET @RET += '</br>'
 				DELETE #PESSOAS WHERE REGISTRO = (SELECT MIN (REGISTRO) FROM #PESSOAS)
 			END
@@ -141,10 +149,13 @@ BEGIN
 						, @NAWEB_ID                  = ISNULL (RTRIM (CAST (NAWEB_ID AS VARCHAR (MAX))), '')
 						, @NAWEB_USER                = ISNULL (NAWEB_USER, '')
 						, @NAWEB_PERFIS              = ISNULL (NAWEB_PERFIS, '')
-						, @FULLWMS_USER              = ISNULL (FULLWMS_USER, '')
-						, @FULLWMS_ID                = ISNULL (FULLWMS_ID, 0)
-						, @FULLWMS_TIPO              = ISNULL (FULLWMS_TIPO_USR, 0)
-						, @FULLWMS_GRUPO             = ISNULL (CAST (FULLWMS_GRUPO AS VARCHAR (6)) + ' - ' + FULLWMS_DESC_GRUPO, 0)
+						, @FULLWMS_ID_COLABORADOR    = ISNULL (FULLWMS_ID_COLABORADOR, 0)
+						, @FULLWMS_NOME_COLABORADOR  = ISNULL (FULLWMS_NOME_COLABORADOR, '')
+						, @FULLWMS_COLABORADOR_ATIVO = ISNULL (FULLWMS_COLABORADOR_ATIVO, '')
+						, @FULLWMS_NOME_USUARIO      = ISNULL (FULLWMS_NOME_USUARIO, '')
+						, @FULLWMS_ID_USUARIO        = ISNULL (FULLWMS_ID_USUARIO, 0)
+						, @FULLWMS_TIPO_USUARIO      = ISNULL (FULLWMS_TIPO_USUARIO, '')
+						, @FULLWMS_GRUPO_USUARIO     = ISNULL (CAST (FULLWMS_GRUPO_USUARIO AS VARCHAR (6)) + ' - ' + FULLWMS_DESC_GRUPO_USUARIO, '')
 			FROM #PESSOAS
 			ORDER BY REGISTRO
 
@@ -168,7 +179,7 @@ BEGIN
 			END
 			SET @RET += '</pre>'
 
-/*
+
 			-- Abre um paragrafo no HTML de retorno para mostrar dados do A.D.
 			SET @RET += '<p><br><strong>ACTIVE DIRECTORY</strong></p>'--DAY 04/05/21 - RETORNANDO UMA VARIAVEL COM O CONTEUDO DO TEXTO
 			SET @RET += '<pre style="padding-left: 40px;">'
@@ -182,7 +193,7 @@ BEGIN
 				SET @RET += 'Situacao: ' + CASE WHEN @AD_ENABLED != 'S' THEN 'Bloqueado' ELSE 'Ativo' END + '</br>'
 			END
 			SET @RET += '</pre>'
-*/
+
 
 			-- Abre um paragrafo no HTML de retorno para mostrar dados do Protheus
 			SET @RET += '<p><br><strong>PROTHEUS</strong></p>'
@@ -286,14 +297,13 @@ BEGIN
 			-- Cria tabela temporaria de perfis x funcionalidades deste usuario no NaWeb,
 			-- jah com um campo em formato para ser exportado em html.
 			;with c as (
-			select row_number () over (order by v.SecRoleId, v.SecFunctionalityKey) as registro
-				, row_number () over (partition by v.SecRoleId order by v.SecFunctionalityKey) as seq_funcionalidade
-				, v.SecRoleId, v.SecFunctionalityKey, v.SecRoleDescription, v.SecFunctionalityDescription
-			from LKSRV_NAWEB.naweb.dbo.SecUserRole sur,
-				LKSRV_NAWEB.naweb.dbo.VA_VPERFIS_X_FUNCIONALIDADES v
-			where sur.SecUserId = @NAWEB_ID
-			and v.SecRoleId = sur.SecRoleId
-			
+				select row_number () over (order by v.SecRoleId, v.SecFunctionalityKey) as registro
+					, row_number () over (partition by v.SecRoleId order by v.SecFunctionalityKey) as seq_funcionalidade
+					, v.SecRoleId, v.SecFunctionalityKey, v.SecRoleDescription, v.SecFunctionalityDescription
+				from LKSRV_NAWEB.naweb.dbo.SecUserRole sur,
+					LKSRV_NAWEB.naweb.dbo.VA_VPERFIS_X_FUNCIONALIDADES v
+				where sur.SecUserId = @NAWEB_ID
+				and v.SecRoleId = sur.SecRoleId
 			)
 			select *
 			, case when seq_funcionalidade = 1
@@ -307,7 +317,7 @@ BEGIN
 			from c
 			order by SecRoleId, SecFunctionalityKey
 
-			-- Percorre a tabela temporaria e acrescenta linhas ´a string de retorno.
+			-- Percorre a tabela temporaria e acrescenta linhas na string de retorno.
 			WHILE EXISTS (SELECT TOP 1 NULL FROM #NaWeb_perfis_do_usuario)
 			BEGIN
 				SET @RET += (SELECT TOP 1 htm from #NaWeb_perfis_do_usuario)
@@ -323,19 +333,65 @@ BEGIN
 			-- Abre um paragrafo no HTML de retorno para mostrar dados do FullWMS
 			SET @RET += '<p><br><strong>FullWMS</strong></p>'
 			SET @RET += '<pre style="padding-left: 40px;">'
-			IF (@FULLWMS_USER = '')
+			SET @RET += 'Como COLABORADOR (para uso nos coletores)</br>'
+			IF (@FULLWMS_ID_COLABORADOR = 0)
 			BEGIN
-				SET @RET += 'Nada consta. Ao criar novo usuario, informar [pessoa ' + FORMAT (@META_PESSOA, 'G') + '] no final do campo NOME COMPLETO.' + '</br>'
+				SET @RET += '    Nada consta.</br>'
+				SET @RET += '    Se criar novo COLABORADOR, informar apenas o cod.pessoa (' + FORMAT (@META_PESSOA, 'G') + ') no campo CRACHA.' + '</br>'
 			END
 			ELSE
 			BEGIN
-				SET @RET += 'ID......: ' + @FULLWMS_ID + '</br>'
-				SET @RET += 'Username: ' + @FULLWMS_USER + ' </br>'
-				SET @RET += 'Situacao: (somente na proxima versao)</br>'  -- Na nova versao espero ter campo de ativo/inativo
-				SET @RET += 'Tipo usr: ' + @FULLWMS_TIPO + ' </br>'
-				SET @RET += 'Grupo...: ' + @FULLWMS_GRUPO + ' </br>'
+				SET @RET += '    ID.....: ' + CAST (@FULLWMS_ID_COLABORADOR AS VARCHAR (6)) + '</br>'
+				SET @RET += '    Nome...: ' + @FULLWMS_NOME_COLABORADOR + '</br>'
+				SET @RET += '    Ativo..: ' + @FULLWMS_COLABORADOR_ATIVO + '</br>'
+				SET @RET += '    Capacitacoes:</br>'
+
+				-- Cria tabela temporaria de perfis x funcionalidades deste usuario no NaWeb,
+				-- jah com um campo em formato para ser exportado em html.
+				;with c as (
+					select *
+					from OPENQUERY ("LKSRV_FULLWMS_LOGISTICA"
+									,'select rownum, tc.prioridade, tc.tarefas_cod_tarefa, t.descr_tarefa
+										from wms_tarefas_colaboradores tc
+											left join wms_tarefas t
+											on (t.empr_codemp = tc.empr_codemp
+											and t.cod_tarefa  = tc.tarefas_cod_tarefa)
+										where colab_cod_colab = 24'
+									) as CAPACITACOES
+					)
+				select ROWNUM, cast (TAREFAS_COD_TAREFA as varchar (2)) + ' - ' + rtrim (DESCR_TAREFA) + '<br>' as htm
+				into #FULLWMS_CAPACITACOES
+				from c
+				order by PRIORIDADE, TAREFAS_COD_TAREFA
+
+				-- Percorre a tabela temporaria e acrescenta linhas na string de retorno.
+				WHILE EXISTS (SELECT TOP 1 NULL FROM #FULLWMS_CAPACITACOES)
+				BEGIN
+					SET @RET += '        ' + (SELECT TOP 1 htm from #FULLWMS_CAPACITACOES)
+
+					-- Remove o registro processado da tabela temporaria
+					DELETE #FULLWMS_CAPACITACOES WHERE ROWNUM = (SELECT MIN (ROWNUM) FROM #FULLWMS_CAPACITACOES)
+				END
+				DROP TABLE #FULLWMS_CAPACITACOES
+			END
+
+			SET @RET += '</br>'
+			SET @RET += 'Como USUARIO (para uso no computador)</br>'
+			IF (@FULLWMS_ID_USUARIO = 0)
+			BEGIN
+				SET @RET += '    Nada consta.</br>'
+				SET @RET += '    Se criar novo USUARIO, informar [pessoa ' + FORMAT (@META_PESSOA, 'G') + '] no final do campo NOME COMPLETO.' + '</br>'
+			END
+			ELSE
+			BEGIN
+				SET @RET += '    ID......: ' + CAST (@FULLWMS_ID_USUARIO AS VARCHAR (6)) + '</br>'
+				SET @RET += '    nome....: ' + @FULLWMS_NOME_USUARIO + ' </br>'
+				SET @RET += '    situacao: </br>'  -- Na nova versao espero ter campo de ativo/inativo
+				SET @RET += '    tipo....: ' + @FULLWMS_TIPO_USUARIO + ' </br>'
+				SET @RET += '    grupo...: ' + @FULLWMS_GRUPO_USUARIO + ' </br>'
 			END
 			SET @RET += '</pre>'  -- Final do NaWeb
+
 
 			-- LINHA PARA SEPARAR OS NOMES ENCONTRADOS (PODE ENCONTRAR MAIS DE UMA PESSOA COM NOMES PARECIDOS)
 			SET @RET += '<p><br><br><strong>========================================================================</strong></p>'
@@ -343,10 +399,11 @@ BEGIN
 
 			-- REMOVE O REGISTRO IMPRESSO DA TABELA.
 			DELETE #PESSOAS WHERE REGISTRO = (SELECT MIN (REGISTRO) FROM #PESSOAS)
+
 		END
 		DROP TABLE #PESSOAS
 	END
-	SET @RET += '</body>'
+
 --	print @RET
 
 /* TESTES:

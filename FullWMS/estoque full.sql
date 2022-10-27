@@ -143,6 +143,24 @@ left join ger_usu_grupos
 on (ger_usu_grupos.ger_usugrupo_id = ger_usuarios.ger_usugrupo_id)
 where upper (nomecompleto) not like '%PESSOA%'
 
+select ger_usuarios.*, ger_usu_grupos.descricao as descricao_grupo
+from ger_usuarios
+left join ger_usu_grupos
+on (ger_usu_grupos.ger_usugrupo_id = ger_usuarios.ger_usugrupo_id)
+
+select * from wms_colaboradores
+order by nome
+
+select rownum, tc.prioridade, tc.tarefas_cod_tarefa, t.descr_tarefa
+from wms_tarefas_colaboradores tc
+    left join wms_tarefas t
+    on (t.empr_codemp = tc.empr_codemp
+    and t.cod_tarefa  = tc.tarefas_cod_tarefa)
+where colab_cod_colab = 24
+order by tc.prioridade, tc.tarefas_cod_tarefa
+
+
+select * from wms_tarefas
 
 -- ultimos movimentos de estoque do usuario
 select ger_usuarios.nome, ger_usuarios.nomecompleto, wms_acerto_estoque_cd.*
