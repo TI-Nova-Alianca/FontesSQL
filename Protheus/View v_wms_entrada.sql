@@ -27,7 +27,8 @@ AS
 --                     - Etiqueta deve constar na tabela tb_wms_etiquetas
 -- 16/09/2022 - Robert - Melhorias leitura ZAG.
 -- 23/09/2022 - Robert - Passa a enviar entradas do ZAG como tpdoc=6
---
+-- 31/10/2022 - Robert - mandar DESCFOR vazio (testes-transf.ZAG nao aparecem no Full)
+-- 04/11/2022 - Robert - mais testes transf.ZAG
 
 WITH C
 AS
@@ -67,18 +68,17 @@ AS
 	-- ENTRADAS POR SOLICITACAO MANUAL DE TRANSFERENCIA
 	SELECT
 		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
-		,RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id_antigo
-		,ZAG.ZAG_DOC AS nrodoc
+		,'SD301B76WZAMIE12911601001   0151           x193S0' AS entrada_id_antigo  --RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id_antigo
+		,'ZAG' + rtrim (ZAG.ZAG_DOC) AS nrodoc
 		,'' AS serie
 		,1 AS linha
 		,ZA1_CODIGO AS codfor
-		,'AX' + ZAG.ZAG_ALMORI + ' (' + rtrim (ZA1_USRINC) + ')' AS descfor
+		,'' as descfor  --'AX' + ZAG.ZAG_ALMORI + ' (' + rtrim (ZA1_USRINC) + ')' AS descfor
 		,RTRIM(ZAG.ZAG_PRDORI) AS coditem
 		,ZAG.ZAG_QTDSOL AS qtde
 		,'6' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente;3-Ajuste de entrada;4-Cancelamento nota fiscal de saída;5-Cancelamento de pedido separado;
 		,ZA1_CODIGO as placa -- Precisa manter igual ao campo 'codfor'
-		--,case when ZAG.ZAG_LOTORI = '' then '000001' else ZAG.ZAG_LOTORI end as lote -- tenho que mandar algum lote para o Full
-		,tb_wms_etiquetas.lote
+		,substring (tb_wms_etiquetas.lote, 1, 8) as lote
 		,1 AS empresa
 		,1 AS cd
 	FROM ZAG010 ZAG

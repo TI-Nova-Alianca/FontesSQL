@@ -180,3 +180,15 @@ where rownum <= 1000
 and item_cod_item = '30242'
 and data = '19/08/22'
 
+select * from wms_etiquetas
+where rownum <= 100
+and palete_id in ('2000556644','2000557981','2000557982','2000558225','2000558268','2000557375')
+
+select * from wms_lotes
+where rownum <= 100
+and item_cod_item in ('0243','0151')
+and lote in ('003','12911601')
+
+select * from wms_autorizacoes_recebimentos
+where rownum <= 100
+order by dthr_autorizacao desc
