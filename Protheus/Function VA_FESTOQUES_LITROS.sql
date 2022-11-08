@@ -12,6 +12,7 @@ GO
 -- 21/10/2022 - Robert - Incluídas colunas de custo médio dos saldos.
 --                     - Devido lentidao leitura custo, passa a gerar em varias
 --                       etapas (CTEs) para melhorar um pouco a performance.
+-- 08/11/2022 - Robert - Passa a considerar tambem itens tipo PP (produto em processo)
 --
 
 ALTER FUNCTION [dbo].[VA_FESTOQUES_LITROS]
@@ -45,7 +46,7 @@ WITH C AS (
 	AND SB2.B2_COD = SB1.B1_COD
 	AND SB1.D_E_L_E_T_ = ''
 	AND SB1.B1_FILIAL = '  '
-	AND SB1.B1_TIPO IN ('PA', 'PI', 'VD')--Somente os litros - Fixos a pedido da Sara - DayRibas
+	AND SB1.B1_TIPO IN ('PA', 'PI', 'VD', 'PP')--Somente os litros - Fixos a pedido da Sara - DayRibas
 
 	-- HABILITAR ESTA CLAUSULA SE QUISER GERAR VALORES IGUAIS AO RELATORIO ANTIGO, QUE CONSIDERAVA OS ALMOXARIFADOS DA TABELA SX5 (MIGRADA PARA TABELA NNR)
 	-- AND SB2.B2_LOCAL IN ('01', '02', '03', '07', '08', '09', '10', '11', '13', '20', '21', '25', '50', '60','66', '70', '71', '72', '73', '90', '91', '92', '99')
