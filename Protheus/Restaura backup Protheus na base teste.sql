@@ -69,7 +69,7 @@ NOUNLOAD, REPLACE, STATS = 10
 GO
 
 -- monitora processo (abrir em janela separada)
-select DB_NAME (database_id) as banco, percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
+select percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, estimated_completion_time / 60 / 1000 as minutos_restantes, * from sys.dm_exec_requests where (command = 'RESTORE DATABASE' or command like 'BACKUP%' or command like 'ALTER%' or command = 'DbccFilesCompact')
 
 -- Ajusta seguranca e acessos. Parece que os usuarios que vem junto no backup,
 -- apesar de terem nomes jah existentes no database destino, nao sao mais aceitos,

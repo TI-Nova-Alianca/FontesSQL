@@ -211,7 +211,7 @@ begin
 		declare @UltimaMarcacaoEsperada7   varchar (5) = isnull ((select HORAMARCACAO from RHHORARIOSMARCACOES where HORARIO = @CodHorarioAConsiderar7 and CLASSEMARCACAO = '99'), '00:00')
 
 		
-		exec LKSRV_TI.TI.dbo.VA_LOG 'VA_FHORARIOS_PARA_AD', 'PrimeiraMarcacaoEsperada1:'
+		exec VA_LOG 'VA_FHORARIOS_PARA_AD', 'PrimeiraMarcacaoEsperada1:'
 
 		-- Tendo os horarios esperados de marcacoes, posso popular a tabela de retorno.
 		update @Ret set H00 = 'N' where DIASEMANA = 1 and @PrimeiraMarcacaoEsperada1 LIKE '00%'
