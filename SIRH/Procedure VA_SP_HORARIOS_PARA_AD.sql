@@ -28,10 +28,15 @@ begin
 	declare @SituacaoFolha  varchar (1) = ''
 	declare @EscalaContrato varchar (4) = ''
 
+	if (@in_DiaSolicitado is null)
+	begin
+		set @in_DiaSolicitado = format (getdate (), 'yyyyMMdd')
+	end
+
 	-- Tabela temporaria para retornar dados
 	declare @Ret table (
-	 DiaSemana INT
-	,Dia date
+	 DiaSemana INT not null
+	,Dia date not null
 	,EscalaContrato varchar (4)
 	,EscalaProgramada varchar (4)
 	,EscalaAConsiderar varchar (4)

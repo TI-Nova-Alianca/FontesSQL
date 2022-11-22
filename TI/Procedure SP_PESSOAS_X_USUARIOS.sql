@@ -176,6 +176,9 @@ BEGIN
 				SET @RET += 'Funcao..: ' + @META_FUNCAO + ' (' + @META_DESCRI_FUNCAO + ') </br>'
 				SET @RET += 'Situacao: ' + ISNULL (@META_DESCRI_SITUACAO, '') + '</br>'
 				SET @RET += 'Bloqueio: ' + @META_OP05 + '</br>'
+
+				-- Busca horarios para esta semana.
+				-- Execucao de procedure que gera tabela temporaria e nao retorna estrutura. Royalties para https://stackoverflow.com/questions/18346484/ssis-package-not-wanting-to-fetch-metadata-of-temporary-table
 			END
 			SET @RET += '</pre>'
 
