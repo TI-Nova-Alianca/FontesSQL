@@ -3,7 +3,7 @@ GO
 SET QUOTED_IDENTIFIER ON
 GO
 
-ALTER VIEW [dbo].[v_wms_entrada]
+alter VIEW [dbo].[v_wms_entrada]
 AS
 -- Cooperativa Vinicola Nova Alianca Ltda
 -- View para integracao de cadastro com o FullWMS.
@@ -29,13 +29,17 @@ AS
 -- 23/09/2022 - Robert - Passa a enviar entradas do ZAG como tpdoc=6
 -- 31/10/2022 - Robert - mandar DESCFOR vazio (testes-transf.ZAG nao aparecem no Full)
 -- 04/11/2022 - Robert - mais testes transf.ZAG
+-- 25/11/2022 - Robert - Eliminado campo ENTRADA_ID_ANTIGO, que continha RTRIM('SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ)
+--                     - Leitura tb_wms_etiquetas passa a validar 'lote' e 'status'.
+--                     - Removidas algumas validacoes desnecessarias (melhoria performance)
+--
 
 WITH C
 AS
 (
 	SELECT
 		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
-		,RTRIM('SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ) AS entrada_id_antigo
+--		,RTRIM('SD3' + D3_FILIAL + D3_DOC + D3_OP + D3_COD + D3_NUMSEQ) AS entrada_id_antigo
 		,RTRIM(D3_DOC) AS nrodoc
 		,'' AS serie
 		,1 AS linha
@@ -56,6 +60,7 @@ AS
 	AND SD3.D3_ESTORNO != 'S'
 	AND D3_TM = '010' -- MELHORA PERFORMANCE --> AND D3_CF LIKE 'PR%'
 	AND D3_LOCAL = '11'
+	AND D3_EMISSAO >= '20210101'  -- NAO EXPORTAR datas antigas por que usavamos uma chave diferente no ENTRADA_ID
 	AND D3_EMISSAO > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
 	AND ZA1.D_E_L_E_T_ = ''
 	AND ZA1.ZA1_FILIAL = SD3.D3_FILIAL
@@ -68,12 +73,12 @@ AS
 	-- ENTRADAS POR SOLICITACAO MANUAL DE TRANSFERENCIA
 	SELECT
 		RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id
-		,'SD301B76WZAMIE12911601001   0151           x193S0' AS entrada_id_antigo  --RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id_antigo
+		--,'SD301B76WZAMIE12911601001   0151           x193S0' AS entrada_id_antigo  --RTRIM('ZA1' + ZA1_FILIAL + ZA1_CODIGO) AS entrada_id_antigo
 		,'ZAG' + rtrim (ZAG.ZAG_DOC) AS nrodoc
 		,'' AS serie
 		,1 AS linha
 		,ZA1_CODIGO AS codfor
-		,'' as descfor  --'AX' + ZAG.ZAG_ALMORI + ' (' + rtrim (ZA1_USRINC) + ')' AS descfor
+		,'AX' + ZAG.ZAG_ALMORI + ' (' + rtrim (ZA1_USRINC) + ')' AS descfor
 		,RTRIM(ZAG.ZAG_PRDORI) AS coditem
 		,ZAG.ZAG_QTDSOL AS qtde
 		,'6' AS tpdoc  -- 1=compra/entrada;2=devolucao de cliente;3-Ajuste de entrada;4-Cancelamento nota fiscal de saída;5-Cancelamento de pedido separado;
@@ -89,11 +94,9 @@ AS
 	AND ZAG.ZAG_FILDST = '01'  -- POR ENQUANTO, APENAS NA MATRIZ.
 	AND ZAG.ZAG_EMIS >= '20220904'  -- DATA DE INICIO DA INTEGRACAO
 	AND ZAG.ZAG_EMIS > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
-	AND ZA1.ZA1_DATA > (SELECT FORMAT (DATEADD (MONTH, -1, CURRENT_TIMESTAMP), 'yyyyMMdd'))
 	AND ZA1.D_E_L_E_T_ = ''
 	AND ZA1.ZA1_FILIAL = ZAG.ZAG_FILDST
 	AND ZA1.ZA1_IDZAG = ZAG.ZAG_DOC
-	AND ZA1.ZA1_IMPRES = 'S'
 	and tb_wms_etiquetas.id = ZA1_CODIGO
 	)
 SELECT *
@@ -103,13 +106,17 @@ FROM C
 WHERE NOT EXISTS (SELECT *
 	FROM tb_wms_entrada T
 	WHERE T.entrada_id = C.entrada_id)
-and NOT EXISTS (SELECT *
-	FROM tb_wms_entrada T
-	WHERE T.entrada_id = C.entrada_id_antigo)
+
+--and NOT EXISTS (SELECT *
+--	FROM tb_wms_entrada T
+--	WHERE T.entrada_id = C.entrada_id_antigo)
 
 -- Se a etiqueta nao foi enviada para o Full, nao adianta mostrar na view.
 and exists (select *
 			from tb_wms_etiquetas
-			where id = codfor)
+			where id = codfor
+			and lote != ''  -- Full aceita a 'entrada', mas nao aceita a 'etiqueta' se estiver sem lote.
+			and status = 'S'  -- Protheus gera 'N' e o Full muda para 'S' se aceitar a etiqueta.
+			)
 
 GO
