@@ -102,6 +102,8 @@ AS
 SELECT *
 FROM C
 
+-- deve estar placa=id etiqueta=pallet
+
 -- Se ja consta na tabela de retorno, nao posso mais mostrar na view.
 WHERE NOT EXISTS (SELECT *
 	FROM tb_wms_entrada T
