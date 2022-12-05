@@ -31,10 +31,10 @@ from (select
            left join wms_acerto_estoque_cd a on (a.wms_acertoestoquecd_id = m.wms_acertoestoque_id)
     ) movtos
         left join item on (item.codigo = movtos.itelog_item_cod_item)
-where itelog_item_cod_item = '0328'
---and trunc(m.dt_mov) between TO_DATE('20220101','YYYYMMDD') and TO_DATE('20220922','YYYYMMDD')
-and lote = '11023801'
-and origem != 'PROD01'
+where itelog_item_cod_item = '30177'
+and trunc(dt_mov) between TO_DATE('20221117','YYYYMMDD') and TO_DATE('20221130','YYYYMMDD')
+and lote = '12902801'
+--and origem != 'PROD01'
 order by dt_mov
 
 -- quando endereco origem vazio, foi gerada etiqueta de entrada direto pelo Full
@@ -105,12 +105,25 @@ order by cod_ruasarm
 /*
 select * from wms_etiquetas
 where rownum <= 100  -- primeiras 10 linhas
-and item_cod_item = '30223'
+and wms_etiqueta_id in ('2000571587', '2000571588', '2000571727', '2000566899')
+
+select * from wms_etiquetas_itens
+where rownum <= 100  -- primeiras 10 linhas
+and item_cod_item = '3576'
+and etitens_id in ('2000571587', '2000571588', '2000571727', '2000566899')
 and trunc(dthr) between TO_DATE('20220901','YYYYMMDD') and TO_DATE('20220912','YYYYMMDD')
 order by dthr
 
 select * from wms_autorizacoes_recebimentos
 where rownum <= 100  -- primeiras 10 linhas
+AND AUTREC_ID IN (336480,336495,336527,336014,334367)
+
+select * from wms_recebimentos_itens
+where rownum <= 100  -- primeiras 10 linhas
+
+select * from wms_lotes
+where rownum <= 100  -- primeiras 10 linhas
+and item_cod_item = '3576'
 
 select * from pedidos
 where rownum <= 100

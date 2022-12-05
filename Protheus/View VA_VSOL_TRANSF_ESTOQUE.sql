@@ -15,8 +15,8 @@ GO
 -- 27/04/2022 - Robert - Testes fixos com almox.X B1_VAFULLW removidos (criei um usuario 'fullwms' no Protheus)
 -- 05/05/2022 - Robert - Versao inicial com campo explicativo em HTML
 -- 29/09/2022 - Robert - Criada coluna STATUS_EXECUCAO
--- 19/10/2022 - Robert - Nao ladidava campo ZZU_VALID
---
+-- 19/10/2022 - Robert - Nao validava campo ZZU_VALID
+-- 05/12/2022 - Robert - Buscar numero da etiqueta (quando houver).
 
 ALTER VIEW [dbo].[VA_VSOL_TRANSF_ESTOQUE] AS 
 WITH C AS (
@@ -53,6 +53,11 @@ WITH C AS (
 			WHEN 'X' THEN ZAG_EXEC + '-Estornado no ERP'
 			ELSE ''
 		END AS STATUS_EXECUCAO
+		, ISNULL ((SELECT TOP 1 ZA1_CODIGO  -- Nao deve encontrar mais de 1 etiq., mas, para evitar de dar algum erro...
+				FROM ZA1010 ZA1
+				WHERE ZA1.D_E_L_E_T_ = ''
+				AND ZA1.ZA1_FILIAL   = ZAG_FILDST
+				AND ZA1.ZA1_IDZAG    = ZAG_DOC), '') AS ETIQUETA
 	FROM ZAG010 ZAG, SB1010 SB1
 	WHERE ZAG.D_E_L_E_T_ = ''
 	AND SB1.D_E_L_E_T_ = ''
@@ -108,6 +113,8 @@ SELECT *
 									AND D3_VACHVEX = 'ZAG' + ZAG_DOC  -- Campo gravado pela ClsTrEstq
 							), '')
 			end + '<br>'
+	+ 'Etiqueta: ' + ETIQUETA + '<br>'
+
 	as RET_PROMPT_HTML  -- Nao mudar o nome deste campo, pois o NaWeb usa ele.
 FROM C
 
