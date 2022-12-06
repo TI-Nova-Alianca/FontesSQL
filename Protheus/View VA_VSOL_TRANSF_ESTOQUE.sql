@@ -17,6 +17,7 @@ GO
 -- 29/09/2022 - Robert - Criada coluna STATUS_EXECUCAO
 -- 19/10/2022 - Robert - Nao validava campo ZZU_VALID
 -- 05/12/2022 - Robert - Buscar numero da etiqueta (quando houver).
+--
 
 ALTER VIEW [dbo].[VA_VSOL_TRANSF_ESTOQUE] AS 
 WITH C AS (
