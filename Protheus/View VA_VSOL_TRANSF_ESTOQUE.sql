@@ -15,8 +15,8 @@ GO
 -- 29/09/2022 - Robert - Criada coluna STATUS_EXECUCAO
 -- 19/10/2022 - Robert - Nao validava campo ZZU_VALID
 -- 05/12/2022 - Robert - Buscar numero da etiqueta (quando houver).
--- 14/12/2022 - Robert - Reescrito usando CTE para melhoria de performance
---                       (tempo para leitura de 2 meses (aprox. 1200 linhas)
+-- 14/12/2022 - Robert - Reescrito usando CTE para melhoria de performance.
+--                       Tempo para leitura de 2 meses (aprox. 1200 linhas)
 --                       baixou de 11 min.p/5 seg. Acho que dá pro gasto, né?
 --                     - Busca dados do FullWMS (tb_wms_pedidos) se for o caso.
 --
@@ -73,16 +73,42 @@ WITH LIBERADORES AS (
 	AND SB1_DST.B1_COD = ZAG.ZAG_PRDDST
 )
 SELECT *
-	,'<font color="black">' --Sobre esta solicitacao de transferencia:</br>' 
-	--+ 'Quem solicitou: ' + ZAG_USRINC + '</br>'
-	+ 'Alm.orig.(' + ZAG_ALMORI + '): ' + case when ZAG_UAUTO != ''
-											then '<font color="green">liberado</font> por ' + ZAG_UAUTO
-											else '<font color="red">aguarda</font> por ' + LIBERADORES_ALMORI
-											end + '</br>'
-	+ 'Alm.dest.(' + ZAG_ALMDST + '): ' + case when ZAG_UAUTD != ''
-											then '<font color="green">liberado</font> por ' + ZAG_UAUTD
-											else '<font color="red">aguarda</font> ' + LIBERADORES_ALMDST
-											end + '</br>'
+	,'<font color="black">'
+	+ 'Alm.orig.(' + ZAG_ALMORI + '): '
+		+ case when ZAG_UAUTO != ''
+			then '<font color="green">liberado</font> por ' + ZAG_UAUTO
+			else '<font color="red">aguarda</font> por '
+				+ case when ZAG_ALMORI = '01'
+					then 'FULLWMS (pedido '
+						+ isnull ((select top 1 nrodoc  -- nao deveria ter mais que um registro, mas, pra evitar algum erro em tempo de execucao...
+								+ ' tarefa com qt.executada= ' + format (qtde_exec, 'G')
+							from tb_wms_pedidos
+							where saida_id = 'ZAG' + ZAG_FILIAL + ZAG_DOC), '')
+					+ ')'
+					else LIBERADORES_ALMORI
+					end
+			end + '</br>'
+	+ 'Alm.dest.(' + ZAG_ALMDST + '): '
+		+ case when ZAG_UAUTD != ''
+			then '<font color="green">liberado</font> por ' + ZAG_UAUTD
+			else '<font color="red">aguarda</font> '
+				+ case when ZAG_ALMDST = '01'
+					then 'FULLWMS (tarefa de recebimento etiq.' + isnull (ETIQUETA, '')
+						+ isnull (' com status '
+							+ (select status
+								+ case status
+									when '1' then '-importada'
+									when '2' then '-autorizado'
+									when '3' then '-finalizado'
+									when '9' then '-excluido'
+									else ' (desconhecido)'
+									end
+								from tb_wms_entrada
+								where nrodoc = 'ZAG' + ZAG_DOC), ' ainda nao gerada')
+					+ ')'
+					else LIBERADORES_ALMDST
+					end
+			end + '</br>'
 	+ 'Produto: ' + rtrim (ZAG_PRDORI) + ' (' + rtrim (ZAG_PRDORIDESC) + ')'
 					+ case when ZAG_PRDDST != ZAG_PRDORI
 						then ' --> ' + rtrim (ZAG_PRDDST) + ' (' + rtrim (ZAG_PRDDSTDESC) + ')'
@@ -102,7 +128,7 @@ SELECT *
 	+ case when ZAG_ENDDST != '' or ZAG_ENDORI != ''
 		then 'Endereco: ' + rtrim (ZAG_ENDORI)
 						+ case when ZAG_ENDDST != ZAG_ENDORI
-							then rtrim (ZAG_ENDORI) + ' --> ' + rtrim (ZAG_ENDDST)
+							then ' --> ' + rtrim (ZAG_ENDDST)
 							else ''
 							end + '</br>'
 		else ''
@@ -111,8 +137,9 @@ SELECT *
 		+ case ZAG_EXEC
 			when ' ' then 'Ainda nao executado no Protheus'
 			when 'X' then ' - Estornado'
-			when 'E' then ' - <font color="red">Erro na execucao'
-			when 'S' then ' - <font color="green">Efetivado no Protheus'
+			when 'N' then ' - Negado - motivo: ' + rtrim (ZAG_MOTNAC)
+			when 'E' then ' - Erro na execucao: ' + rtrim (ZAG_EREXEC)
+			when 'S' then ' - Efetivado no Protheus'
 						-- Busca SD3 usando TOP 1 por que as transf. geram sempre um par de movimentos.
 						+ ISNULL ((SELECT TOP 1 ' em ' + dbo.VA_DTOC (D3_EMISSAO) + ' (Doc.estoque=' + D3_DOC + ')'
 									FROM SD3010 SD3
@@ -121,14 +148,18 @@ SELECT *
 									AND D3_VACHVEX = 'ZAG' + ZAG_DOC  -- Campo gravado pela ClsTrEstq
 							), '')
 			end + '<br>'
+	+ 'Ultimas mensagens: ' + rtrim (ZAG_ULTMSG) + '<br>'
 	+ 'Etiqueta: ' + ETIQUETA + '<br>'
+/*
 	+ case when ZAG_ALMORI = '01'  -- controlado pelo FullWMS e, portanto, deveria gerar pedido de separacao.
 		then 'Pedido de separacao no FullWMS: '
 			+ isnull ((select top 1 nrodoc  -- nao deveria ter mais que um registro, mas, pra evitar algum erro em tempo de execucao...
 					+ ' (qt.executada: ' + format (qtde_exec, 'G') + ')'
 				from tb_wms_pedidos
 				where saida_id = 'ZAG' + ZAG_FILIAL + ZAG_DOC), '')
+		else ''
 	end + '<br>'
+*/
 	as RET_PROMPT_HTML  -- Nao mudar o nome deste campo, pois o NaWeb usa ele.
 FROM C
 
