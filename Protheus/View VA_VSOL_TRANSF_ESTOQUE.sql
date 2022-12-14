@@ -1,10 +1,8 @@
-
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
-
 
 -- Cooperativa Nova Alianca Ltda
 -- View para buscar dados de solicitacoes de transferencias de estoque feitas ao Protheus via web service.
@@ -17,53 +15,62 @@ GO
 -- 29/09/2022 - Robert - Criada coluna STATUS_EXECUCAO
 -- 19/10/2022 - Robert - Nao validava campo ZZU_VALID
 -- 05/12/2022 - Robert - Buscar numero da etiqueta (quando houver).
+-- 14/12/2022 - Robert - Reescrito usando CTE para melhoria de performance
+--                       (tempo para leitura de 2 meses (aprox. 1200 linhas)
+--                       baixou de 11 min.p/5 seg. Acho que dá pro gasto, né?
+--                     - Busca dados do FullWMS (tb_wms_pedidos) se for o caso.
 --
 
+
+-- NAO MUDAR os nomes dos campos, pois o NaWeb usa eles.
 ALTER VIEW [dbo].[VA_VSOL_TRANSF_ESTOQUE] AS 
-WITH C AS (
+WITH LIBERADORES AS (
+	SELECT SUBSTRING (ZZU.ZZU_GRUPO, 2, 2) AS ALMOX
+		, STRING_AGG (UPPER (RTRIM (U.USR_CODIGO)), ', ') AS NOMES
+	FROM ZZU010 ZZU, SYS_USR U
+	WHERE ZZU.D_E_L_E_T_ = ''
+	AND ZZU.ZZU_FILIAL = '  '
+	AND U.USR_ID = ZZU.ZZU_USER
+	AND ZZU.ZZU_VALID >= FORMAT (CURRENT_TIMESTAMP, 'yyyyMMdd')
+	AND ZZU.ZZU_GRUPO LIKE 'A%'
+	GROUP BY SUBSTRING (ZZU.ZZU_GRUPO, 2, 2)
+)
+, C AS (
 	SELECT ZAG.*
-		, ISNULL ((SELECT [GX0004_PRODUTO_DESCRICAO]
-					FROM [dbo].[GX0004_PRODUTOS]
-					WHERE [GX0004_PRODUTO_CODIGO] = ZAG.ZAG_PRDORI) , '') as  ZAG_PRDORIDESC
-		, ISNULL ((SELECT [GX0004_PRODUTO_DESCRICAO]
-					FROM [dbo].[GX0004_PRODUTOS]
-					WHERE [GX0004_PRODUTO_CODIGO] = ZAG.ZAG_PRDDST) , '') as  ZAG_PRDDSTDESC
-		, ISNULL ((SELECT NOMES = STRING_AGG (UPPER (RTRIM (U.USR_CODIGO)), ', ')
-					FROM ZZU010 ZZU, SYS_USR U
-					WHERE ZZU.D_E_L_E_T_ = ''
-					AND ZZU.ZZU_FILIAL = '  '
-					AND U.USR_ID = ZZU.ZZU_USER
-					AND ZZU.ZZU_VALID >= FORMAT (CURRENT_TIMESTAMP, 'yyyyMMdd')
-					AND ZZU.ZZU_GRUPO = 'A' + ZAG.ZAG_ALMORI)
-					, '') AS LIBERADORES_ALMORI
-		, ISNULL ((SELECT NOMES = STRING_AGG (UPPER (RTRIM (U.USR_CODIGO)), ', ')
-					FROM ZZU010 ZZU, SYS_USR U
-					WHERE ZZU.D_E_L_E_T_ = ''
-					AND ZZU.ZZU_FILIAL = '  '
-					AND U.USR_ID = ZZU.ZZU_USER
-					AND ZZU.ZZU_VALID >= FORMAT (CURRENT_TIMESTAMP, 'yyyyMMdd')
-					AND ZZU.ZZU_GRUPO = 'A' + ZAG.ZAG_ALMDST)
-					, '') AS LIBERADORES_ALMDST
+		, ISNULL (SB1_ORI.B1_DESC, '') as  ZAG_PRDORIDESC
+		, ISNULL (SB1_DST.B1_DESC, '') as  ZAG_PRDDSTDESC
+		, ISNULL (LIBERADORES_ORI.NOMES, '') AS LIBERADORES_ALMORI
+		, ISNULL (LIBERADORES_DST.NOMES, '') AS LIBERADORES_ALMDST
 		, '' AS LIBERADORES_PCP  -- POR ENQUANTO NAO VAI SER USADO
 		, '' AS LIBERADORES_QUALIDADE  -- POR ENQUANTO NAO VAI SER USADO
-		, SB1.B1_UM
+		, SB1_ORI.B1_UM
 		, CASE ZAG_EXEC
 			WHEN ' ' THEN 'Nao executado'
 			WHEN 'S' THEN ZAG_EXEC + '-Executado'
 			WHEN 'E' THEN ZAG_EXEC + '-Erro na execucao'
+			WHEN 'N' THEN ZAG_EXEC + '-Negado'
 			WHEN 'X' THEN ZAG_EXEC + '-Estornado no ERP'
 			ELSE ''
 		END AS STATUS_EXECUCAO
-		, ISNULL ((SELECT TOP 1 ZA1_CODIGO  -- Nao deve encontrar mais de 1 etiq., mas, para evitar de dar algum erro...
-				FROM ZA1010 ZA1
-				WHERE ZA1.D_E_L_E_T_ = ''
-				AND ZA1.ZA1_FILIAL   = ZAG_FILDST
-				AND ZA1.ZA1_IDZAG    = ZAG_DOC), '') AS ETIQUETA
-	FROM ZAG010 ZAG, SB1010 SB1
+		, ISNULL (ZA1_CODIGO, '') AS ETIQUETA
+	FROM ZAG010 ZAG
+		LEFT JOIN ZA1010 ZA1
+			ON (ZA1.D_E_L_E_T_ = ''
+			AND ZA1.ZA1_FILIAL = ZAG_FILDST
+			AND ZA1.ZA1_IDZAG  = ZAG_DOC)
+		LEFT JOIN LIBERADORES LIBERADORES_ORI
+			ON (LIBERADORES_ORI.ALMOX = ZAG.ZAG_ALMORI)
+		LEFT JOIN LIBERADORES LIBERADORES_DST
+			ON (LIBERADORES_DST.ALMOX = ZAG.ZAG_ALMDST)
+		, SB1010 SB1_ORI
+		, SB1010 SB1_DST
 	WHERE ZAG.D_E_L_E_T_ = ''
-	AND SB1.D_E_L_E_T_ = ''
-	AND SB1.B1_FILIAL = '  '
-	AND SB1.B1_COD = ZAG.ZAG_PRDORI
+	AND SB1_ORI.D_E_L_E_T_ = ''
+	AND SB1_ORI.B1_FILIAL = '  '
+	AND SB1_ORI.B1_COD = ZAG.ZAG_PRDORI
+	AND SB1_DST.D_E_L_E_T_ = ''
+	AND SB1_DST.B1_FILIAL = '  '
+	AND SB1_DST.B1_COD = ZAG.ZAG_PRDDST
 )
 SELECT *
 	,'<font color="black">' --Sobre esta solicitacao de transferencia:</br>' 
@@ -102,7 +109,7 @@ SELECT *
 		end
 	+ 'Status: ' + ZAG_EXEC
 		+ case ZAG_EXEC
-			when ' ' then 'Ainda nao executado'
+			when ' ' then 'Ainda nao executado no Protheus'
 			when 'X' then ' - Estornado'
 			when 'E' then ' - <font color="red">Erro na execucao'
 			when 'S' then ' - <font color="green">Efetivado no Protheus'
@@ -115,7 +122,13 @@ SELECT *
 							), '')
 			end + '<br>'
 	+ 'Etiqueta: ' + ETIQUETA + '<br>'
-
+	+ case when ZAG_ALMORI = '01'  -- controlado pelo FullWMS e, portanto, deveria gerar pedido de separacao.
+		then 'Pedido de separacao no FullWMS: '
+			+ isnull ((select top 1 nrodoc  -- nao deveria ter mais que um registro, mas, pra evitar algum erro em tempo de execucao...
+					+ ' (qt.executada: ' + format (qtde_exec, 'G') + ')'
+				from tb_wms_pedidos
+				where saida_id = 'ZAG' + ZAG_FILIAL + ZAG_DOC), '')
+	end + '<br>'
 	as RET_PROMPT_HTML  -- Nao mudar o nome deste campo, pois o NaWeb usa ele.
 FROM C
 
