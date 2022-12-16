@@ -4,6 +4,8 @@ SET QUOTED_IDENTIFIER ON
 GO
 
 
+
+
 -- Cooperativa Agroindustriala Nova Alianca Ltda
 -- View para buscar situacao de associados quanto a previsao de entregar uva na safra.
 -- Autor: Guilherme Oliveira
@@ -22,6 +24,7 @@ GO
 --                     - Nao trazia fornecedores nao associados (assumia codigo e loja em branco)
 -- 05/01/2020 - Robert - Criada coluna GX0001_TIPO_FORNECEDOR_UVA
 -- 18/01/2021 - Robert - Bloqueado associado 005500/02 (GLPI 11491)
+-- ??/??/2022 - Daiana - Buscar numero WhatsApp dos associados.
 --
 
 ALTER view [dbo].[GX0001_AGENDA_SAFRA]
@@ -118,22 +121,43 @@ WITH FORNECEDORES AS
 	union all
 
 	-- BUSCA FORNECEDORES DE UVA 'NAO ASSOCIADOS'
+	
+	--campos CCAssociadoTelefone e CCAssociadoCelular foram excluidos da tabela CCAssociado - Daiana ribas 25/04/2022
+	--SELECT DISTINCT
+	--	A2_COD
+	--	,A2_LOJA
+	--	,CCAssociadoNome     as A2_NOME
+	--	,CCAssociadoTelefone as A2_TEL	 
+	--	,CCAssociadoCelular	 as A2_VACELUL 
+	--	,''                  as RESTRICAO
+	--	,'N'                 as TIPO_FORNECEDOR_UVA  -- 'N' = 'Nao associado'
+	--FROM LKSRV_NAWEB.naweb.dbo.CCAssociado
+	--	, SA2010 SA2
+	--where CCAssociadoSituacao = 2  -- 0=Falta mapeamento;1=Associado ativo;2=Nao associado (fornecedor de uva);3=Ex associado
+	--AND SA2.D_E_L_E_T_ = ''
+	--AND SA2.A2_FILIAL  = '  '
+	--AND SA2.A2_CGC     = CCAssociadoCPF
+
 	SELECT DISTINCT
-		A2_COD
+		 A2_COD
 		,A2_LOJA
-		,CCAssociadoNome     as A2_NOME
-		,CCAssociadoTelefone as A2_TEL
-		,CCAssociadoCelular  as A2_VACELUL
+		,ASS.CCAssociadoNome     as A2_NOME		
 		,''                  as RESTRICAO
 		,'N'                 as TIPO_FORNECEDOR_UVA  -- 'N' = 'Nao associado'
-	FROM LKSRV_NAWEB.naweb.dbo.CCAssociado
+		,(SELECT STRING_AGG(RTRIM(Case when CON.CCAssocContatoFone <> '' then CON.CCAssocContatoFone ELSE '' END), ' ') 
+		FROM LKSRV_NAWEB.naweb.dbo.CCAssocContatos CON
+			where CON.CCAssociadoCPF = ASS.CCAssociadoCPF) as A2_TEL 
+
+		,(SELECT STRING_AGG(RTRIM(Case When CON.CCAssocContatoWhatsapp <> '' then  CON.CCAssocContatoWhatsapp else '' end), ' ')
+			FROM LKSRV_NAWEB.naweb.dbo.CCAssocContatos CON
+			where CON.CCAssociadoCPF = ASS.CCAssociadoCPF) as A2_VACELUL 
+
+	FROM LKSRV_NAWEB.naweb.dbo.CCAssociado ASS
 		, SA2010 SA2
 	where CCAssociadoSituacao = 2  -- 0=Falta mapeamento;1=Associado ativo;2=Nao associado (fornecedor de uva);3=Ex associado
 	AND SA2.D_E_L_E_T_ = ''
 	AND SA2.A2_FILIAL  = '  '
-	AND SA2.A2_CGC     = CCAssociadoCPF
-
-
+	AND SA2.A2_CGC     = ASS.CCAssociadoCPF
 )
 
 SELECT
@@ -145,7 +169,7 @@ SELECT
 	,LTRIM(RTRIM(FORNECEDORES.A2_TEL)) + ' / ' + LTRIM(RTRIM(FORNECEDORES.A2_VACELUL)) AS GX0001_ASSOCIADO_TELEFONE
 	,FORNECEDORES.RESTRICAO              AS GX0001_ASSOCIADO_RESTRICAO
 	,CCP.CCPropriedadeCod                AS GX0001_PROPRIEDADE_CODIGO
-	,REPLACE(STR(CCP.CCPropriedadeCod, 5), ' ', '0') AS GX0001_VITICOLA_CODIGO -- DayRibas - AlteraÃ§Ã£o do nome do campo para facilitar entendimento
+	,REPLACE(STR(CCP.CCPropriedadeCod, 5), ' ', '0') AS GX0001_VITICOLA_CODIGO -- DayRibas - Alteração do nome do campo para facilitar entendimento
 	,CCP.CCPropriedadeSivibe             AS GX0001_SIVIBE_CODIGO
 	,SUBSTRING (REPLACE(STR(CCPropriedadeRecadastro, 4),' ','0'), 1, 8) as GX0001_VITICOLA_RECADASTRO
 	,SUBSTRING (REPLACE(STR(CCPropriedadeRecadastro, 4),' ','0') + '1231', 1, 8) as GX0001_VITICOLA_FISICO
@@ -175,4 +199,7 @@ FROM
 		ON (CCP.CCPropriedadeCod != 0  -- Cadastro viticola = 0 significa que tem outras colturas
 		and CCP.CCAssociadoGrpFamCod = CCAssocIEGrpFamCod)
 	ON (CCAI.CCAssociadoCod = A2_COD and CCAI.CCAssociadoLoja = A2_LOJA)
+--where CCAI.CCAssociadoCPF = '11056533072'
+
+
 GO
