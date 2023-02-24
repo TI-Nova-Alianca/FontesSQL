@@ -80,6 +80,9 @@ order by wms_predios.ruasarm_cod_ruasarm, wms_predios.cod_predio
 
 aqui ainda faltaria buscar as RESERVAS 
 
+select * from V_ALIANCA_ESTOQUES
+where qtd_reservada != 0
+
 select distinct situacao from wms_estoques_cd
 
 select * from v_wms_estoques_alianca where cod_item = '0151'
