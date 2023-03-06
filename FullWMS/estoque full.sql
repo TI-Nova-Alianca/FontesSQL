@@ -31,7 +31,7 @@ from (select
            left join wms_acerto_estoque_cd a on (a.wms_acertoestoquecd_id = m.wms_acertoestoque_id)
     ) movtos
         left join item on (item.codigo = movtos.itelog_item_cod_item)
-where itelog_item_cod_item = '30177'
+where itelog_item_cod_item = '0246'
 and trunc(dt_mov) between TO_DATE('20221117','YYYYMMDD') and TO_DATE('20221130','YYYYMMDD')
 and lote = '12902801'
 --and origem != 'PROD01'
@@ -40,47 +40,19 @@ order by dt_mov
 -- quando endereco origem vazio, foi gerada etiqueta de entrada direto pelo Full
 
 select * from wms_mov_estoques_cd
-where trunc(dt_mov) in (TO_DATE('20220925','YYYYMMDD'), TO_DATE('20220930','YYYYMMDD'))
+where trunc(dt_mov) in (TO_DATE('20230303','YYYYMMDD'), TO_DATE('20230303','YYYYMMDD'))
 and itelog_item_cod_item = '0151'
 --and wms_acertoestoque_id is null
 
-select * from wms_acerto_estoque_cd
-where rownum <= 100  -- primeiras 10 linhas
-and wms_acertoestoquecd_id in (196207,196419)
+select count (*) from wms_acerto_estoque_cd
+where sincronizado != 'S'
+and rownum <= 100  -- primeiras 10 linhas
+and wms_acertoestoquecd_id in (203508,203509)
 
 
 -- Estoques e situacao do endereco / estoque
-select wms_estoques_cd.item_cod_item_log
-    , wms_estoques_cd.lote
-    , wms_estoques_cd.qtd
-    , wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la as posicao
-    --, wms_la.status as status_la
-    , wms_ruas_armazenagens.tipo_rua || '-' || case wms_ruas_armazenagens.tipo_rua
-            when 1 then 'crossdocking'
-            when 2 then 'armazenagem'
-            when 9 then 'indisponivel'
-            else '' end as situacao_rua
-    , wms_estoques_cd.situacao || '-' || + case wms_estoques_cd.situacao
-            when 'L' then 'liberado'
-            when 'B' then 'bloqueado'
-            else '' end as situacao_lote
-    , wms_estoques_cd.*
-from wms_estoques_cd
-    join wms_la
-        join wms_predios
-            join wms_ruas_armazenagens
-            on (wms_ruas_armazenagens.cod_ruasarm = wms_predios.ruasarm_cod_ruasarm)
-        on (wms_predios.predio_id = wms_la.predio_predio_id)
-    on (wms_la.empr_codemp = wms_estoques_cd.empr_codemp
-    and wms_la.cod_la = wms_estoques_cd.la_cod_la
-    and wms_la.predio_predio_id = wms_estoques_cd.predio_predio_id)
-where rownum <= 100
-and  wms_estoques_cd.item_cod_item_log = '3249A' --'2626'
-order by wms_predios.ruasarm_cod_ruasarm, wms_predios.cod_predio
-
-aqui ainda faltaria buscar as RESERVAS 
-
 select * from V_ALIANCA_ESTOQUES
+where item_cod_item_log = '0246'
 where qtd_reservada != 0
 
 select distinct situacao from wms_estoques_cd
