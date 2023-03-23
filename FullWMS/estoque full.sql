@@ -51,9 +51,17 @@ and wms_acertoestoquecd_id in (203508,203509)
 
 
 -- Estoques e situacao do endereco / estoque
-select * from V_ALIANCA_ESTOQUES
-where item_cod_item_log = '0246'
-where qtd_reservada != 0
+select item_cod_item_log, lote, sum (qtd)
+from V_ALIANCA_ESTOQUES
+where situacao_rua like '9%'
+--and item_cod_item_log = '0345'
+group by item_cod_item_log, lote
+
+select *
+from V_ALIANCA_ESTOQUES
+where item_cod_item_log = '0345'
+
+
 
 select distinct situacao from wms_estoques_cd
 
