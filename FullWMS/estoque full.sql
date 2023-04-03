@@ -156,8 +156,24 @@ where colab_cod_colab = 24
 order by tc.prioridade, tc.tarefas_cod_tarefa
 
 
-select * from wms_tarefas
+select * from wms_tarefas_cd t
+where itelog_item_cod_item = '30616'
+and qtd = 92
+and lote = '13221101'
+   and t.empr_codemp = 1
+           and t.centdist_cod_centdist = 1
+           and t.tarefas_cod_tarefa in (1, 25)
 
+           and t.dt_fim is null
+       
+  select * from wms_autorizacoes a
+        where a.item_cod_item = '30616'
+        and autorizacao in (348107,348775)
+        --and a.situacao_wms = '1'
+           
+          
+select * from V_WMS_ESTOQUES_ALIANCA where cod_item = '30316' 
+  
 -- ultimos movimentos de estoque do usuario
 select ger_usuarios.nome, ger_usuarios.nomecompleto, wms_acerto_estoque_cd.*
 from wms_acerto_estoque_cd
