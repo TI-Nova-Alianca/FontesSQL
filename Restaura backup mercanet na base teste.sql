@@ -37,7 +37,7 @@ GO
 /*
 -- Verifica conteudo do arquivo (pode haver mais de 1 backup no arquivo). Nesse caso,
 -- usar WITH FILE= no comando de restore para especificar qual backup deve ser restaurado.
-declare @nome_arq_bkp varchar (60) = N'n:\MercanetPRD\MercanetPRD_Full 03-41 07-04-2022.bak'
+declare @nome_arq_bkp varchar (60) = N'n:\MercanetPRD\MercanetPRD_Full 03-41 11-04-2023.bak'
 --RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017
@@ -46,13 +46,13 @@ RESTORE DATABASE [MercanetHML]  -- para onde vai ser restaurado
 FROM DISK = @nome_arq_bkp  -- de onde vai ser restaurado
 WITH FILE = 1,  -- se o arq. de backup tiver mais de um backup, quero o primeiro
 REPLACE,  -- para permitir renomear o database (restaurar para um nome diferente do database onde foi feito o backup)
-MOVE N'MercanetPRD' TO N'c:\Dados_SQL\MercanetHML.mdf',  -- move o nome logico do database original para o arquivo (fisico) destino do restore
-MOVE N'MercanetPRD_log' TO N'c:\Dados_SQL\MercanetHML_log.ldf',  -- move o nome logico do database original para o arquivo (fisico) destino do restore
+MOVE N'MercanetPRD' TO N'f:\Dados_SQL\MercanetHML.mdf',  -- move o nome logico do database original para o arquivo (fisico) destino do restore
+MOVE N'MercanetPRD_log' TO N'f:\Dados_SQL\MercanetHML_log.ldf',  -- move o nome logico do database original para o arquivo (fisico) destino do restore
 -- NORECOVERY  -- se quiser restaurar algum arquivo de log em seguida
 NOUNLOAD, REPLACE, STATS = 10  -- se nao vai restaurar logs
 GO
 
--- Se for restauras alguns arquivos de backup log
+-- Se fosse restaurar alguns arquivos de backup log...
 -- use master;
 -- RESTORE LOG [MercanetHML] FROM DISK = N'n:\MercanetPRD\MercanetPRD_Log 30-09-2021 02-00.trn' WITH FILE = 1, NORECOVERY
 

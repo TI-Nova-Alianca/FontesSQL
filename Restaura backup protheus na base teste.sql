@@ -55,16 +55,18 @@ GO
 /*
 -- Verifica conteudo do arquivo (pode haver mais de 1 backup no arquivo). Nesse caso,
 -- usar WITH FILE= no comando de restore para especificar qual backup deve ser restaurado.
-declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 12-30 02-01-2022.bak'
---RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
+-- Depois de usar o comando RESTORE HEADERONLY (para verificar se eh o backup certo a restaurar),
+-- comentariar o comando RESTORE HEADERONLY e executar o RESTORE DATABASE mais abaixo.
+declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 18-30 06-04-2023.bak'
+RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017
 use master;
 RESTORE DATABASE [protheus_teste]
 FROM DISK = @nome_arq_bkp
 WITH FILE = 1,
-MOVE N'protheus' TO N'd:\Dados_SQL\protheus_teste.mdf',
-MOVE N'protheus_log' TO N'd:\Dados_SQL\protheus_teste_log.ldf',
+MOVE N'protheus' TO N'f:\Dados_SQL\protheus_teste.mdf',
+MOVE N'protheus_log' TO N'f:\Dados_SQL\protheus_teste_log.ldf',
 NOUNLOAD, REPLACE, STATS = 10
 GO
 
@@ -74,8 +76,8 @@ select percent_complete, total_elapsed_time / 60 / 1000 as minutos_executado, es
 
 
 -- Ajusta seguranca e acessos. Como a base quente encontra-se no SQL2005 e a teste no SQL2016, parece que
--- os usuùrios que vem junto no backup, apesar de terem nomes jù existentes no SQL2016, nùo sùo mais aceitos,
--- entùo tive que deletar os usuarios do database e dar novamente os acessos.
+-- os usuarios que vem junto no backup, apesar de terem nomes ja existentes no SQL, nao sao mais aceitos,
+-- entao tive que deletar os usuarios do database e dar novamente os acessos.
 use protheus_teste
 EXEC dbo.sp_changedbowner @loginame = N'siga', @map = false
 GO
