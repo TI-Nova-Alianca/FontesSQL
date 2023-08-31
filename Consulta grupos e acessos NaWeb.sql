@@ -108,6 +108,14 @@ where v.SecRoleId = 130  -- manutecao
 select * from SecFunctionality where SecFunctionalityKey = 'SegurosWW'
 
 
-select * from VA_VUSUARIOS_X_PERFIS_X_FUNCIONALIDADES v
+select * from VA_VUSUARIOS_X_PERFIS_X_FUNCIONALIDADES v1
+where v1.SecUserName = 'dagoberto.puton'
+and not exists (select * from VA_VUSUARIOS_X_PERFIS_X_FUNCIONALIDADES v2
+				where v2.SecUserName = 'paulo.nunes'
+				and v2.SecFunctionalityKey = v1.SecFunctionalityKey)
+
+
+
+
 where lower (v.SecFunctionalityKey) = 'wpnconjuridico'
 
