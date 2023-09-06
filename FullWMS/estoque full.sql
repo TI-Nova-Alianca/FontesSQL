@@ -31,31 +31,18 @@ from (select
            left join wms_acerto_estoque_cd a on (a.wms_acertoestoquecd_id = m.wms_acertoestoque_id)
     ) movtos
         left join item on (item.codigo = movtos.itelog_item_cod_item)
-where itelog_item_cod_item = '0246'
-and trunc(dt_mov) between TO_DATE('20221117','YYYYMMDD') and TO_DATE('20221130','YYYYMMDD')
-and lote = '12902801'
+where itelog_item_cod_item = '0151'
+and trunc(dt_mov) between TO_DATE('20230801','YYYYMMDD') and TO_DATE('20230831','YYYYMMDD')
+and lote = '13522201'
 --and origem != 'PROD01'
 order by dt_mov
 
 -- quando endereco origem vazio, foi gerada etiqueta de entrada direto pelo Full
 
-select * from wms_mov_estoques_cd
-where trunc(dt_mov) in (TO_DATE('20230303','YYYYMMDD'), TO_DATE('20230303','YYYYMMDD'))
-and itelog_item_cod_item = '0151'
---and wms_acertoestoque_id is null
-
 select count (*) from wms_acerto_estoque_cd
 where sincronizado != 'S'
 and rownum <= 100  -- primeiras 10 linhas
 and wms_acertoestoquecd_id in (203508,203509)
-
-
--- Estoques e situacao do endereco / estoque
-select item_cod_item_log, lote, sum (qtd)
-from V_ALIANCA_ESTOQUES
-where situacao_rua like '9%'
---and item_cod_item_log = '0345'
-group by item_cod_item_log, lote
 
 select *
 from V_ALIANCA_ESTOQUES
@@ -66,14 +53,6 @@ where item_cod_item_log = '0345'
 select distinct situacao from wms_estoques_cd
 
 select * from v_wms_estoques_alianca where cod_item = '0151'
-
-select * from wms_predios
-where rownum <= 100
-and predio_id = 381
-
-select * from wms_la
-where rownum <= 100
-and status = 'B'
 
 select tipo_rua || '-' || case tipo_rua
         when 1 then 'crossdocking'
@@ -96,13 +75,6 @@ and item_cod_item = '3576'
 and etitens_id in ('2000571587', '2000571588', '2000571727', '2000566899')
 and trunc(dthr) between TO_DATE('20220901','YYYYMMDD') and TO_DATE('20220912','YYYYMMDD')
 order by dthr
-
-select * from wms_autorizacoes_recebimentos
-where rownum <= 100  -- primeiras 10 linhas
-AND AUTREC_ID IN (336480,336495,336527,336014,334367)
-
-select * from wms_recebimentos_itens
-where rownum <= 100  -- primeiras 10 linhas
 
 select * from wms_lotes
 where rownum <= 100  -- primeiras 10 linhas
@@ -155,7 +127,6 @@ from wms_tarefas_colaboradores tc
 where colab_cod_colab = 24
 order by tc.prioridade, tc.tarefas_cod_tarefa
 
-
 select * from wms_tarefas_cd t
 where itelog_item_cod_item = '30616'
 and qtd = 92
@@ -171,8 +142,6 @@ and lote = '13221101'
         and autorizacao in (348107,348775)
         --and a.situacao_wms = '1'
            
-          
-select * from V_WMS_ESTOQUES_ALIANCA where cod_item = '30316' 
   
 -- ultimos movimentos de estoque do usuario
 select ger_usuarios.nome, ger_usuarios.nomecompleto, wms_acerto_estoque_cd.*
@@ -187,20 +156,37 @@ where rownum <= 100
 and (colab_cod_colab = 35 or usuario like 'GUILHERMET%')
 */
 
+
+
+
+
 select * from wms_logs
 where rownum <= 1000
-and item_cod_item = '30242'
-and data = '19/08/22'
+and item_cod_item = '4553'
+and data >= '01/08/23'
 
-select * from wms_etiquetas
-where rownum <= 100
-and palete_id in ('2000556644','2000557981','2000557982','2000558225','2000558268','2000557375')
 
-select * from wms_lotes
-where rownum <= 100
-and item_cod_item in ('0243','0151')
-and lote in ('003','12911601')
+
+
+
+
+
+
 
 select * from wms_autorizacoes_recebimentos
-where rownum <= 100
-order by dthr_autorizacao desc
+--    left join wms_tarefas_cd
+--        on (wms_tarefas_cd.empr_codemp = wms_autorizacoes_recebimentos.empr_codemp
+--        and wms_tarefas_cd.centdist_cod_centdist = wms_autorizacoes_recebimentos.centdist_cod_centdist
+--        and wms_tarefas_cd.autrec_autrec_id = wms_autorizacoes_recebimentos.autrec_id)
+where rownum <= 1000
+and autrec_id = 369908
+and placa_nfe in (2000647875)
+
+select * from wms_sub_tarefas_cd
+where rownum <= 1000
+and pal_palete_id = 2000647875
+
+select * from wms_sub_tarefas_cd
+where rownum <= 1000
+and tarcd_cod_tarefa_cd = 1509787
+--and pal_palete_id = 2000647875
