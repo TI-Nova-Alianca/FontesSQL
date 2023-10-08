@@ -44,10 +44,12 @@ where sincronizado != 'S'
 and rownum <= 100  -- primeiras 10 linhas
 and wms_acertoestoquecd_id in (203508,203509)
 
-select *
+select lote, situacao_rua, situacao_lote, num_reserva, sum (qtd)
 from V_ALIANCA_ESTOQUES
-where item_cod_item_log = '0345'
-
+where rownum <= 100
+and item_cod_item_log = '0151'
+--and lote = '1234567890'
+group by lote, situacao_rua, situacao_lote, num_reserva
 
 
 select distinct situacao from wms_estoques_cd
@@ -66,8 +68,9 @@ order by cod_ruasarm
 
 /*
 select * from wms_etiquetas
-where rownum <= 100  -- primeiras 10 linhas
-and wms_etiqueta_id in ('2000571587', '2000571588', '2000571727', '2000566899')
+where rownum <= 1000  -- primeiras 10 linhas
+and dthr like '%23'
+and item_cod_item = '0345' or wms_etiqueta_id in ('2000609298')
 
 select * from wms_etiquetas_itens
 where rownum <= 100  -- primeiras 10 linhas
@@ -173,14 +176,18 @@ and data >= '01/08/23'
 
 
 
-select * from wms_autorizacoes_recebimentos
+select * --placa_nfe, dthr_autorizacao, situacao. decode (dthr_autorizacao, null, '', dthr_autorizacao) as dthr
+from wms_autorizacoes_recebimentos
 --    left join wms_tarefas_cd
 --        on (wms_tarefas_cd.empr_codemp = wms_autorizacoes_recebimentos.empr_codemp
 --        and wms_tarefas_cd.centdist_cod_centdist = wms_autorizacoes_recebimentos.centdist_cod_centdist
 --        and wms_tarefas_cd.autrec_autrec_id = wms_autorizacoes_recebimentos.autrec_id)
 where rownum <= 1000
-and autrec_id = 369908
-and placa_nfe in (2000647875)
+--and autrec_id = 369908
+--and dthr = '18/09/23'
+and placa_nfe between 2000654906 and 2000655635
+and placa_nfe in (2000655638, 2000655635)
+
 
 select * from wms_sub_tarefas_cd
 where rownum <= 1000
