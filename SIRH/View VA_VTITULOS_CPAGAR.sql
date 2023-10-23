@@ -1,7 +1,13 @@
+USE [SIRH]
+GO
+
+/****** Object:  View [dbo].[VA_VTITULOS_CPAGAR]    Script Date: 23/10/2023 09:16:47 ******/
 SET ANSI_NULLS ON
 GO
+
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 
@@ -15,7 +21,7 @@ GO
 --                          - Renomeadas algumas colunas e formatadas datas para yyyyMMdd (GLPI 10667)
 --
 
-create VIEW [dbo].[VA_VTITULOS_CPAGAR]
+ALTER VIEW [dbo].[VA_VTITULOS_CPAGAR]
 AS
 
 WITH CTE
@@ -135,3 +141,5 @@ SELECT
 FROM CTE
 
 GO
+
+

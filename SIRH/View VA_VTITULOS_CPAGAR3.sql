@@ -1,7 +1,7 @@
 USE [SIRH]
 GO
 
-/****** Object:  View [dbo].[VA_VTITULOS_CPAGAR3]    Script Date: 24/06/2023 14:43:47 ******/
+/****** Object:  View [dbo].[VA_VTITULOS_CPAGAR3]    Script Date: 23/10/2023 09:22:04 ******/
 SET ANSI_NULLS ON
 GO
 
