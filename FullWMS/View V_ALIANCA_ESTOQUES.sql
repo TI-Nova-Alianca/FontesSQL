@@ -6,6 +6,7 @@ AS
 
 -- Historico de alteracoes:
 -- 03/03/2023 - Robert - Passa a identificar o endereco de avarias.
+-- 17/10/2023 - Robert - Passa a busca sub-locais (ex.: picking)
 --
 
 with cte1 as (
@@ -13,7 +14,8 @@ with cte1 as (
     , wms_estoques_cd.item_cod_item_log
     , wms_estoques_cd.lote
     , wms_estoques_cd.validade
-    , wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la as endereco
+    --, wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la as endereco
+    , wms_predios.ruasarm_cod_ruasarm || '-' || wms_predios.cod_predio || '-' || wms_la.cod_la || decode (wms_sub_la.cod_subla, null, '', '-' || wms_sub_la.cod_subla) as endereco
     --, wms_la.status as status_la
     , wms_ruas_armazenagens.tipo_rua || '-' || case wms_ruas_armazenagens.tipo_rua
             when 1 then 'crossdocking'
@@ -35,6 +37,9 @@ from wms_estoques_cd
     on (wms_la.empr_codemp = wms_estoques_cd.empr_codemp
     and wms_la.cod_la = wms_estoques_cd.la_cod_la
     and wms_la.predio_predio_id = wms_estoques_cd.predio_predio_id)
+    left join wms_sub_la
+    on (wms_sub_la.empr_codemp = wms_estoques_cd.empr_codemp
+    and wms_sub_la.subla_id = wms_estoques_cd.subla_subla_id)
 )
 select cte1.empr_codemp
     , cte1.item_cod_item_log
