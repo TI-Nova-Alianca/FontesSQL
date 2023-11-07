@@ -57,8 +57,8 @@ GO
 -- usar WITH FILE= no comando de restore para especificar qual backup deve ser restaurado.
 -- Depois de usar o comando RESTORE HEADERONLY (para verificar se eh o backup certo a restaurar),
 -- comentariar o comando RESTORE HEADERONLY e executar o RESTORE DATABASE mais abaixo.
-declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 18-30 06-04-2023.bak'
-RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
+declare @nome_arq_bkp varchar (50) = N'n:\protheus\Protheus_Full 06-30 05-11-2023.bak'
+--RESTORE HEADERONLY FROM DISK = @nome_arq_bkp
 
 -- Restaura o backup no database novo. Documentacao em https://docs.microsoft.com/pt-br/sql/relational-databases/backup-restore/restore-a-database-to-a-new-location-sql-server?view=sql-server-2017
 use master;
@@ -100,12 +100,14 @@ GRANT SELECT ON [dbo].[v_wms_estoques] TO [FullWMS]
 GRANT SELECT ON [dbo].[v_wms_item] TO [FullWMS]
 GRANT SELECT ON [dbo].[v_wms_pedido] TO [FullWMS]
 GRANT SELECT ON [dbo].[v_wms_transportadoras] TO [FullWMS]
+GRANT SELECT ON [dbo].[v_wms_bloqueios] TO [FullWMS]
 GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_entrada] TO [FullWMS]
 GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_etiquetas] TO [FullWMS]
 GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_lotes] TO [FullWMS]
 GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_movimentacoes] TO [FullWMS]
 GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_pedidos] TO [FullWMS]
 GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_volumes] TO [FullWMS]
+GRANT INSERT, SELECT, UPDATE ON [dbo].[tb_wms_bloqueios] TO [FullWMS]
 
 DROP USER [mercanet]
 CREATE USER [mercanet] FOR LOGIN [mercanet] WITH DEFAULT_SCHEMA=[dbo]
