@@ -31,11 +31,20 @@ from (select
            left join wms_acerto_estoque_cd a on (a.wms_acertoestoquecd_id = m.wms_acertoestoque_id)
     ) movtos
         left join item on (item.codigo = movtos.itelog_item_cod_item)
-where itelog_item_cod_item = '0151'
-and trunc(dt_mov) between TO_DATE('20230801','YYYYMMDD') and TO_DATE('20230831','YYYYMMDD')
-and lote = '13522201'
---and origem != 'PROD01'
+--where itelog_item_cod_item = '0328'
+where trunc(dt_mov) between TO_DATE('20231127','YYYYMMDD') and TO_DATE('20231127','YYYYMMDD')
+--and lote = '13522201'
+--and origem = 'AV-1-1'
+--and destino = 'AV-1-1'
+and endereco = 'AV-1-1'
 order by dt_mov
+
+select *
+from wms_mov_estoques_cd m
+--where itelog_item_cod_item = '0328'
+--where trunc(dt_mov) between TO_DATE('20231106','YYYYMMDD') and TO_DATE('20231106','YYYYMMDD')
+where trunc(dt_mov) >= TO_DATE('20231105','YYYYMMDD')
+and qtd = 0
 
 -- quando endereco origem vazio, foi gerada etiqueta de entrada direto pelo Full
 
@@ -44,15 +53,17 @@ where sincronizado != 'S'
 and rownum <= 100  -- primeiras 10 linhas
 and wms_acertoestoquecd_id in (203508,203509)
 
-select lote, situacao_rua, situacao_lote, num_reserva, sum (qtd)
+select *
 from V_ALIANCA_ESTOQUES
 where rownum <= 100
-and item_cod_item_log = '0151'
+and item_cod_item_log = '30720'
 --and lote = '1234567890'
-group by lote, situacao_rua, situacao_lote, num_reserva
 
 
-select distinct situacao from wms_estoques_cd
+select * from wms_estoques_cd
+where item_cod_item_log = '0083'
+and lote = '13003101'
+
 
 select * from v_wms_estoques_alianca where cod_item = '0151'
 
@@ -197,3 +208,6 @@ select * from wms_sub_tarefas_cd
 where rownum <= 1000
 and tarcd_cod_tarefa_cd = 1509787
 --and pal_palete_id = 2000647875
+
+
+
