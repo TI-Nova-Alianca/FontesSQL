@@ -56,9 +56,13 @@ and wms_acertoestoquecd_id in (203508,203509)
 select *
 from V_ALIANCA_ESTOQUES
 where rownum <= 100
-and item_cod_item_log = '30720'
---and lote = '1234567890'
+and item_cod_item_log in ('0358')
+and lote in ('13733701') --, '13729901')
 
+select *
+from V_ALIANCA_ESTOQUES
+where rownum <= 100
+and item_cod_item_log in ('30606A')
 
 select * from wms_estoques_cd
 where item_cod_item_log = '0083'
