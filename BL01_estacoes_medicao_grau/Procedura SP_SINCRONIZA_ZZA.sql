@@ -1,6 +1,6 @@
 USE [BL01]
 GO
-/****** Object:  StoredProcedure [dbo].[SP_SINCRONIZA_ZZA]    Script Date: 29/01/2024 14:28:00 ******/
+/****** Object:  StoredProcedure [dbo].[SP_SINCRONIZA_ZZA]    Script Date: 31/01/2024 12:34:09 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -17,6 +17,7 @@ GO
 --
 -- Historico de alteracoes:
 -- 29/01/2024 - Robert - Resincronizava apenas cargas com ZZA_STATUS 1/C. Agora passa a ser 1/C/M
+-- 31/01/2024 - Robert - Nao baixava ZZA_INIST1, ZZA_INIST2, ZZA_INIST3 do servidor ao ler novas cargas.
 --
 
 ALTER PROCEDURE [dbo].[SP_SINCRONIZA_ZZA]
@@ -27,8 +28,8 @@ ALTER PROCEDURE [dbo].[SP_SINCRONIZA_ZZA]
 BEGIN
 
 	-- Busca no servidor as novas cargas que ainda nao existem na estacao
-	insert into BL01.dbo.ZZA010 (ZZA_FILIAL, ZZA_SAFRA, ZZA_CARGA, ZZA_PRODUT, ZZA_STATUS, ZZA_NASSOC, ZZA_NPROD)
-	select ZZA_FILIAL, ZZA_SAFRA, ZZA_CARGA, ZZA_PRODUT, ZZA_STATUS, ZZA_NASSOC, ZZA_NPROD
+	insert into BL01.dbo.ZZA010 (ZZA_FILIAL, ZZA_SAFRA, ZZA_CARGA, ZZA_PRODUT, ZZA_STATUS, ZZA_NASSOC, ZZA_NPROD, ZZA_INIST1, ZZA_INIST2, ZZA_INIST3)
+	select ZZA_FILIAL, ZZA_SAFRA, ZZA_CARGA, ZZA_PRODUT, ZZA_STATUS, ZZA_NASSOC, ZZA_NPROD, ZZA_INIST1, ZZA_INIST2, ZZA_INIST3
 	from LKSRV_SERVERSQL_BL01.protheus.dbo.ZZA010 servidor
 	where servidor.ZZA_FILIAL = @filial COLLATE DATABASE_DEFAULT
 	and servidor.ZZA_SAFRA = @safra COLLATE DATABASE_DEFAULT
