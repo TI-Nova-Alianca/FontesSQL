@@ -1,6 +1,6 @@
 USE [BL01]
 GO
-/****** Object:  StoredProcedure [dbo].[SP_SINCRONIZA_ZZA]    Script Date: 31/01/2024 12:34:09 ******/
+/****** Object:  StoredProcedure [dbo].[SP_SINCRONIZA_ZZA]    Script Date: 20/02/2024 08:56:12 ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -18,6 +18,7 @@ GO
 -- Historico de alteracoes:
 -- 29/01/2024 - Robert - Resincronizava apenas cargas com ZZA_STATUS 1/C. Agora passa a ser 1/C/M
 -- 31/01/2024 - Robert - Nao baixava ZZA_INIST1, ZZA_INIST2, ZZA_INIST3 do servidor ao ler novas cargas.
+-- 20/02/2024 - Robert - Campo ZZA_PRODUT nao fazia parte das chaves de leitura/gravacao.
 --
 
 ALTER PROCEDURE [dbo].[SP_SINCRONIZA_ZZA]
@@ -33,11 +34,13 @@ BEGIN
 	from LKSRV_SERVERSQL_BL01.protheus.dbo.ZZA010 servidor
 	where servidor.ZZA_FILIAL = @filial COLLATE DATABASE_DEFAULT
 	and servidor.ZZA_SAFRA = @safra COLLATE DATABASE_DEFAULT
+	and servidor.ZZA_STATUS != '0'
 	and not exists (select *
 					from ZZA010 estacao
 					where estacao.ZZA_FILIAL = servidor.ZZA_FILIAL COLLATE DATABASE_DEFAULT
-					  and estacao.ZZA_SAFRA  = servidor.ZZA_SAFRA COLLATE DATABASE_DEFAULT
-					  and estacao.ZZA_CARGA  = servidor.ZZA_CARGA COLLATE DATABASE_DEFAULT)
+					  and estacao.ZZA_SAFRA  = servidor.ZZA_SAFRA  COLLATE DATABASE_DEFAULT
+					  and estacao.ZZA_CARGA  = servidor.ZZA_CARGA  COLLATE DATABASE_DEFAULT
+					  and estacao.ZZA_PRODUT = servidor.ZZA_PRODUT COLLATE DATABASE_DEFAULT)
 
 	-- Se a carga teve alguma alteracao no servidor (foi cancelada ou reenviada), preciso replicar para a estacao.
 	update estacao set ZZA_STATUS = servidor.ZZA_STATUS
@@ -46,9 +49,10 @@ BEGIN
 	  and estacao.ZZA_SAFRA = @safra
 	  and estacao.ZZA_STATUS in ('1', 'C', 'M')
 	  and servidor.ZZA_STATUS != estacao.ZZA_STATUS COLLATE DATABASE_DEFAULT
-	  and servidor.ZZA_FILIAL = estacao.ZZA_FILIAL COLLATE DATABASE_DEFAULT
-	  and servidor.ZZA_SAFRA  = estacao.ZZA_SAFRA  COLLATE DATABASE_DEFAULT
-	  and servidor.ZZA_CARGA  = estacao.ZZA_CARGA  COLLATE DATABASE_DEFAULT
+	  and servidor.ZZA_FILIAL = estacao.ZZA_FILIAL  COLLATE DATABASE_DEFAULT
+	  and servidor.ZZA_SAFRA  = estacao.ZZA_SAFRA   COLLATE DATABASE_DEFAULT
+	  and servidor.ZZA_CARGA  = estacao.ZZA_CARGA   COLLATE DATABASE_DEFAULT
+	  and servidor.ZZA_PRODUT = estacao.ZZA_PRODUT  COLLATE DATABASE_DEFAULT
 	  and servidor.ZZA_STATUS in ('1', '3', 'C', 'M')
 
 
@@ -58,6 +62,7 @@ BEGIN
 	declare @ZZAFILIAL varchar (2)
 	declare @ZZASAFRA  varchar (4)
 	declare @ZZACARGA  varchar (4)
+	declare @ZZAPRODUT varchar (15)
 	declare @ZZASTATUS varchar (1)
 	declare @ZZAGRAU float
 	declare @ZZAINIST1 varchar (17)
@@ -70,7 +75,7 @@ BEGIN
 		-- quero ter a certeza de reenviar algum registro que possa ter sido perdido em
 		-- execucoes anteriores por falta de conectividade. Quando eu conseguir operar com
 		-- controle de transacoes entre servidores, espero nao precisar mais disso...)
-		select ZZA_FILIAL, ZZA_SAFRA, ZZA_CARGA, ZZA_STATUS, ZZA_GRAU, ZZA_INIST1, ZZA_INIST2, ZZA_INIST3
+		select ZZA_FILIAL, ZZA_SAFRA, ZZA_CARGA, ZZA_PRODUT, ZZA_STATUS, ZZA_GRAU, ZZA_INIST1, ZZA_INIST2, ZZA_INIST3
 		from BL01.dbo.ZZA010 estacao
 	--	where (ENVIADO_PARA_SERVIDOR is null
 	--		or ENVIADO_PARA_SERVIDOR > DATEADD (HOUR, -1, getdate()))
@@ -79,6 +84,7 @@ BEGIN
 						where servidor.ZZA_FILIAL = estacao.ZZA_FILIAL COLLATE DATABASE_DEFAULT
 						  and servidor.ZZA_SAFRA  = estacao.ZZA_SAFRA  COLLATE DATABASE_DEFAULT
 						  and servidor.ZZA_CARGA  = estacao.ZZA_CARGA  COLLATE DATABASE_DEFAULT
+						  and servidor.ZZA_PRODUT = estacao.ZZA_PRODUT COLLATE DATABASE_DEFAULT
 						  and servidor.ZZA_STATUS in ('1', '2')  -- Nao quero reenviar se jah teve alguma alteracao no servidor
 						  and servidor.ZZA_GRAU   = 0  -- Nao quero reenviar se jah teve alguma alteracao no servidor
 						 )
@@ -86,7 +92,7 @@ BEGIN
 	OPEN tblcur
 	WHILE 1 = 1
 	BEGIN
-		FETCH tblcur INTO @ZZAFILIAL, @ZZASAFRA, @ZZACARGA, @ZZASTATUS, @ZZAGRAU, @ZZAINIST1, @ZZAINIST2, @ZZAINIST3
+		FETCH tblcur INTO @ZZAFILIAL, @ZZASAFRA, @ZZACARGA, @ZZAPRODUT, @ZZASTATUS, @ZZAGRAU, @ZZAINIST1, @ZZAINIST2, @ZZAINIST3
 
 		IF @@fetch_status <> 0
 			BREAK
@@ -99,15 +105,17 @@ BEGIN
 		-- da estacao, em vez do SQL do servidor assumir o 'horario atual'.
 		update LKSRV_SERVERSQL_BL01.protheus.dbo.ZZA010
 			set ZZA_STATUS = @ZZASTATUS, ZZA_GRAU = @ZZAGRAU
-			where ZZA_FILIAL = @ZZAFILIAL --COLLATE DATABASE_DEFAULT
-			  and ZZA_SAFRA  = @ZZASAFRA  --COLLATE DATABASE_DEFAULT
-			  and ZZA_CARGA  = @ZZACARGA  --COLLATE DATABASE_DEFAULT
+			where ZZA_FILIAL = @ZZAFILIAL
+			  and ZZA_SAFRA  = @ZZASAFRA
+			  and ZZA_CARGA  = @ZZACARGA
+			  and ZZA_PRODUT = @ZZAPRODUT
 
 		update LKSRV_SERVERSQL_BL01.protheus.dbo.ZZA010
 			set ZZA_INIST1 = @ZZAINIST1, ZZA_INIST2 = @ZZAINIST2, ZZA_INIST3 = @ZZAINIST3
-			where ZZA_FILIAL = @ZZAFILIAL --COLLATE DATABASE_DEFAULT
-			  and ZZA_SAFRA  = @ZZASAFRA  --COLLATE DATABASE_DEFAULT
-			  and ZZA_CARGA  = @ZZACARGA  --COLLATE DATABASE_DEFAULT
+			where ZZA_FILIAL = @ZZAFILIAL
+			  and ZZA_SAFRA  = @ZZASAFRA
+			  and ZZA_CARGA  = @ZZACARGA
+			  and ZZA_PRODUT = @ZZAPRODUT
 
 		-- Guarda a hora em que o registro foi enviado para o servidor
 	--	update BL01.dbo.ZZA010
