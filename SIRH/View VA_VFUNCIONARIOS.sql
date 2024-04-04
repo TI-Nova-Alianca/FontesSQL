@@ -1,12 +1,15 @@
 USE [SIRH]
 GO
 
-/****** Object:  View [dbo].[VA_VFUNCIONARIOS]    Script Date: 25/04/2022 13:58:26 ******/
+/****** Object:  View [dbo].[VA_VFUNCIONARIOS]    Script Date: 22/03/2024 11:50:56 ******/
 SET ANSI_NULLS ON
 GO
 
 SET QUOTED_IDENTIFIER ON
 GO
+
+
+
 
 
 
@@ -30,6 +33,8 @@ GO
 -- 07/12/2020 - Robert - Acrescentadas colunas com sugestao de chave para A.D., Protheus e NaWeb
 -- 31/03/2021 - Robert - Acrescentados vinculos empregaticios 13 e 14 (estagiario e menor aprendiz)
 -- 18/06/2021 - Robert - Acrescentado vinculo empregaticio 99 (sem vinculo - Ex.: Rita e Sara)
+-- 17/09/2023 - Robert - Acrescentados campos de DataAdmissao e DataRescisao
+-- 13/03/2024 - Robert - Acrescentado vinculo empregaticio 09 (autonomos) para o caso de Lindones Lemos
 --
 
 ALTER VIEW [dbo].[VA_VFUNCIONARIOS] AS
@@ -60,6 +65,8 @@ AS
 	   ,OP05.CODIGOCOMPLEMENTAR AS OP05
 	   ,OP05.DESCRICAO20 AS DESC_OP05
 	   ,C.ESCALA AS ESCALA_CONTRATO
+	   ,C.DATAADMISSAO
+	   ,C.DATARESCISAO
 	FROM RHCONTRATOS C
 	LEFT JOIN (SELECT
 			UNIDADE
@@ -80,7 +87,8 @@ AS
 		ON (S.SETOR = C.SETOR)
 	--WHERE C.VINCULOEMPREGATICIO IN ('01', '06', '08')
 	--WHERE C.VINCULOEMPREGATICIO IN ('01', '06', '08','13','14')
-	WHERE C.VINCULOEMPREGATICIO IN ('01', '06', '08','13','14','99')
+	-- WHERE C.VINCULOEMPREGATICIO IN ('01', '06', '08','13','14','99')  -- Duvidas, olhar tabela RHVINCEMPREGATICIOS
+	WHERE C.VINCULOEMPREGATICIO IN ('01', '06', '08','09','13','14','99')  -- Duvidas, olhar tabela RHVINCEMPREGATICIOS
 	AND NOT EXISTS (SELECT
 			*
 		FROM RHCONTRATOS MAISRECENTE
@@ -121,6 +129,8 @@ SELECT P.PESSOA
    ,'Pessoa ' + cast (P.PESSOA as nvarchar) as EmployeeID_para_AD
    ,'Pessoa ' + cast (P.PESSOA as nvarchar) + ' ' + rtrim (DESC_FUNCAO) COLLATE SQL_Latin1_General_CP1251_CS_AS as Cargo_para_Protheus
    ,'Funcao_' + CA.FUNCAO as Grupo_prioritario_para_Protheus
+   ,CA.DATAADMISSAO
+   ,CA.DATARESCISAO
 FROM SIRH.dbo.RHPESSOAS AS P
 	 JOIN CONTRATOATUAL CA ON (CA.PESSOA = P.PESSOA)
 WHERE P.EMPRESA != '9999'
