@@ -1,5 +1,6 @@
 
 -- https://tdn.totvs.com/pages/releaseview.action?pageId=221546134
+---teste
 
 WITH C AS (
 SELECT SU.USR_ID, SU.USR_CODIGO, SUG.USR_GRUPO, SGG.GR__NOME, SUG.USR_PRIORIZA, SGA.GR__CODACESSO, SGA.GR__DESCACESSO--, SGA.*, SUG.* , SGG.*
