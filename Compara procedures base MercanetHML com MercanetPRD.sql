@@ -26,3 +26,4 @@ order by PRD_object_name
 
 -- https://stackoverflow.com/questions/21722066/how-to-create-an-alias-of-database-in-sql-server#comment101880584_27533388
 -- https://www.baud.cz/blog/database-alias-in-microsoft-sql-server
+-- teste
